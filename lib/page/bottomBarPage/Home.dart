@@ -31,8 +31,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   @override
   Widget build(BuildContext context) {
-    return
-    Scaffold(
+    return Scaffold(
       appBar: AppBar(
         // ImageRoud('https://dss0.bdstatic.com/70cFuHSh_Q1YnxGkpoWK1HF6hhy/it/u=3374416169,262924133&fm=111&gp=0.jpg',50),
         backgroundColor: Color(0xffFAFAFA),
@@ -40,14 +39,14 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         title: Row(
           children: <Widget>[
             Container(
-              width: ScreenAdapter.setWidth(100),
+              // width: ScreenAdapter.setWidth(100),
               child: IconButton(
                   icon: Container(
                     // padding: EdgeInsets.only(left:ScreenAdapter.setWidth(30)),
                     child:ImageRoud('https://dss0.bdstatic.com/70cFvHSh_Q1YnxGkpoWK1HF6hhy/it/u=3256100974,305075936&fm=26&gp=0.jpg', 100)
                   ),
                 onPressed: (){
-                  
+                  Navigator.pushNamed(context, '/userCenter');
                 },
               ),
             ),
@@ -59,7 +58,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                   indicatorWeight:1.0,
                   indicatorColor:Theme.of(context).primaryColor,
                   indicatorPadding:EdgeInsets.symmetric(horizontal: ScreenAdapter.setWidth(20)),
-                  labelStyle: TextStyle(fontSize: ScreenAdapter.size(30)),
+                  labelStyle: TextStyle(fontSize: ScreenAdapter.size(30), fontWeight: FontWeight.bold),
                   labelColor: Color(0xff333333),
                   unselectedLabelColor: Color(0xff555555),
                   unselectedLabelStyle: TextStyle(fontSize: ScreenAdapter.size(25)),
@@ -87,7 +86,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       ),
       body: TabBarView(
         controller: _tabController,
-        physics: NeverScrollableScrollPhysics(),
+        // physics: NeverScrollableScrollPhysics(),
         children: <Widget>[
           Home(),
           ConsulationPage(),

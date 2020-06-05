@@ -2,7 +2,7 @@ import 'package:firetiger/utils/ScreenAdapter.dart';
 import 'package:flutter/material.dart';
 import 'package:transparent_image/transparent_image.dart';
 
-// 视频列表 组件页面
+// 赛事直播 组件页面
 
 class HomeVideoList extends StatefulWidget {
   @override
@@ -19,8 +19,8 @@ class _VideoListState extends State<HomeVideoList> {
       child: Column(
       children: <Widget>[
          Wrap(
-              spacing: 15, // 平行距离
-              runSpacing: 10, // 上下距离
+              spacing: ScreenAdapter.setWidth(40), // 平行距离
+              runSpacing: ScreenAdapter.setHeight(20), // 上下距离
               children: [
                 Container(
                   width: itemWidth,

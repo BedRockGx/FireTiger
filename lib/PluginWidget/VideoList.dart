@@ -5,6 +5,8 @@ import 'package:transparent_image/transparent_image.dart';
 // 视频列表 组件页面
 
 class VideoList extends StatefulWidget {
+  bool isUnpublished = false;
+  VideoList({this.isUnpublished});
   @override
   _VideoListState createState() => _VideoListState();
 }
@@ -42,9 +44,20 @@ class _VideoListState extends State<VideoList> {
                                     ),
                                   ))),
                           Positioned(
-                            bottom: 5,
-                            left: 5,
-                            
+                            top: ScreenAdapter.setHeight(0),
+                            left: ScreenAdapter.setWidth(0),
+                            child: Container(
+                              padding: EdgeInsets.all(ScreenAdapter.setWidth(10)),
+                              decoration: BoxDecoration(
+                                color: Color(0xffF5F5F5),
+                                borderRadius: BorderRadius.only( bottomRight:Radius.circular(5))
+                              ),
+                              child: Text('审核失败', style: TextStyle(fontSize: ScreenAdapter.size(20)),),
+                            ),
+                          ),
+                          Positioned(
+                            bottom: ScreenAdapter.setHeight(10),
+                            left: ScreenAdapter.setWidth(10),
                             child: Container(
                               width: itemWidth,
                               padding: EdgeInsets.only(right:ScreenAdapter.setWidth(20)),

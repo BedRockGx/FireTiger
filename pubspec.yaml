@@ -29,7 +29,11 @@ dependencies:
   flutter_screenutil:
   shared_preferences:
   flutter_swiper:
-  transparent_image:
+  transparent_image:                              # 网络图片过渡
+  image_picker:                                   # 选择图片和视频
+  image_cropper:                                  # 裁剪图片
+  fijkplayer:                                     # 视频播放器
+  flutter_cupertino_date_picker:                  # 日期选择器
 
 dev_dependencies:
   flutter_test:
@@ -57,6 +61,25 @@ flutter:
     - assets/images/tag3.png
     - assets/images/tag4.png
     - assets/images/tag5.png
+    - assets/images/xx.png
+    - assets/images/dj.png
+    - assets/images/lw.png
+    - assets/images/wd.png
+    - assets/images/banner.png
+    - assets/images/huohuan.png
+    - assets/images/award.png
+    - assets/images/shop.png
+    - assets/images/wallet.png
+    - assets/images/order.png
+    - assets/images/gz.png
+    - assets/images/jc.png
+    - assets/images/qb.png
+    - assets/images/sp.png
+    - assets/images/sz.png
+    - assets/images/bz.png
+    - assets/images/bzb.png
+    - assets/images/gift.png
+    - assets/images/comments.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

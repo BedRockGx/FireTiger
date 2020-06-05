@@ -130,6 +130,7 @@ class _LoginPageState extends State<LoginPage> {
                 child: RaisedButton(
                   child: Text('立即登录', style: TextStyle(fontSize: ScreenAdapter.size(30)),),
                   textColor: Colors.white,
+                  highlightColor:Theme.of(context).primaryColor,
                   color: Theme.of(context).primaryColor,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(28),

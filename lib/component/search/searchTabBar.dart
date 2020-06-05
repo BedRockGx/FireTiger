@@ -1,5 +1,8 @@
 // import 'package:firetiger/customFlutter/no_shadow_tab_bar.dart';
 import 'package:firetiger/component/search/tab/all.dart';
+import 'package:firetiger/component/search/tab/anchor.dart';
+import 'package:firetiger/component/search/tab/match.dart';
+import 'package:firetiger/component/search/tab/video.dart';
 import 'package:firetiger/utils/ScreenAdapter.dart';
 import 'package:flutter/material.dart';
 
@@ -30,8 +33,7 @@ class _SearchTabBarState extends State<SearchTabBar> with TickerProviderStateMix
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      
-      body:Column(
+      body:ListView(
         children: <Widget>[
           Container(
             padding: EdgeInsets.all(ScreenAdapter.setWidth(20)),
@@ -116,46 +118,10 @@ class _SearchTabBarState extends State<SearchTabBar> with TickerProviderStateMix
           IndexedStack(
             index: _index,
             children: <Widget>[
-             SearchTabAll(),
-              Center(
-                child: Container(
-                  height: 300,
-                  width: 300,
-                  color: Colors.green,
-                  alignment: Alignment.center,
-                  child: Icon(
-                    Icons.cake,
-                    size: 60,
-                    color: Colors.blue,
-                  ),
-                ),
-              ),
-              Center(
-                child: Container(
-                  height: 300,
-                  width: 300,
-                  color: Colors.yellow,
-                  alignment: Alignment.center,
-                  child: Icon(
-                    Icons.local_cafe,
-                    size: 60,
-                    color: Colors.blue,
-                  ),
-                ),
-              ),
-              Center(
-                child: Container(
-                  height: 300,
-                  width: 300,
-                  color: Colors.yellow,
-                  alignment: Alignment.center,
-                  child: Icon(
-                    Icons.local_cafe,
-                    size: 60,
-                    color: Colors.blue,
-                  ),
-                ),
-              ),
+              SearchTabAll(),
+              AnchorPage(),
+              MatchPage(),
+              SearchVideoList()
             ],
           )
 

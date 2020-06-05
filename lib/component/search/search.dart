@@ -201,7 +201,7 @@ class _SearchPageState extends State<SearchPage> {
                     onTap: () {
                       // print(value);
                       setState(() {
-                        _keywords.text = value;
+                        _keywords.text = value['title'];
                         isSearch = true;
                         searchMetod();
                         print(_keywords.text);
@@ -213,58 +213,23 @@ class _SearchPageState extends State<SearchPage> {
             ),
           ));
     } else {
-      return 
-      SingleChildScrollView(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height),
-          child: SearchTabBar(),
-        )
-      );
-       
-      
-      // 输入搜索内容时
-      // return ListView.builder(
-      //     itemCount: suggestionList.length,
-      //     itemBuilder: (context, index) {
-      //       return InkWell(
-      //         child: ListTile(
-      //           title: RichText(
-      //               text: TextSpan(
-      //                   text: suggestionList[index]
-      //                       .substring(0, _keywords.text.length),
-      //                   style: TextStyle(
-      //                       color: Colors.black, fontWeight: FontWeight.bold),
-      //                   children: [
-      //                 TextSpan(
-      //                     text: suggestionList[index]
-      //                         .substring(_keywords.text.length),
-      //                     style: TextStyle(color: Colors.grey))
-      //               ])),
-      //         ),
-      //         onTap: () {
-      //           // print(suggestionList[index]);
-      //           setState(() {
-      //             _keywords.text = suggestionList[index];
-      //             isSearch = true;
-      //             searchMetod();
-      //             print(_keywords.text);
-      //           });
-      //         },
-      //       );
-      //     });
+      return SearchTabBar();
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body:Container(
-          margin: EdgeInsets.only(top:ScreenAdapter.setHeight(30)),
-          
-          child: ListView(
-            children: <Widget>[
-              Container(
-                padding: EdgeInsets.symmetric(horizontal:ScreenAdapter.setWidth(30)),
+      appBar: AppBar(
+        backgroundColor: Color(0xffFAFAFA),
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios, color: Colors.black45,),
+          onPressed: (){
+            Navigator.pop(context);
+          },
+        ),
+        title: Container(
                 child:Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: <Widget>[
@@ -272,8 +237,7 @@ class _SearchPageState extends State<SearchPage> {
                     flex: 1,
                     child: Container(
                     child: Container(
-                      
-                            // height: ScreenAdapter.setHeight(50),
+                            height: ScreenAdapter.setHeight(70),
                             decoration: BoxDecoration(
                                 color: Color(0xffF5F5F5),
                                 borderRadius: BorderRadius.circular(30)),
@@ -326,8 +290,8 @@ class _SearchPageState extends State<SearchPage> {
                     width: ScreenAdapter.setWidth(30),
                   ),
                   Container(
-                      height: ScreenAdapter.setHeight(60),
-                      width: ScreenAdapter.setWidth(80),
+                      // height: ScreenAdapter.setHeight(60),
+                      // width: ScreenAdapter.setWidth(80),
                       child: Row(
                         children: <Widget>[
                           isSearch ?  
@@ -351,11 +315,8 @@ class _SearchPageState extends State<SearchPage> {
                 ],
               ),
               ),
-              
-              _isShowRecommend()
-            ],
-          ),
-        )
+      ),
+        body:_isShowRecommend()
         
          
     );

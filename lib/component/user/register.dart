@@ -305,8 +305,9 @@ class _RegisterPageState extends State<RegisterPage> {
                       width: ScreenAdapter.setWidth(500),
                       height: ScreenAdapter.setHeight(70),
                       child: RaisedButton(
-                        child: Text('立即注册'),
+                        child: Text('立即注册', style: TextStyle(fontSize: ScreenAdapter.size(30)),),
                         textColor: Colors.white,
+                        highlightColor:Theme.of(context).primaryColor,
                         color: _verification_available && _password_available && _codeText.text != '' ? 
                               Theme.of(context).primaryColor : Color(0xffDFDFDF),
                         shape: RoundedRectangleBorder(

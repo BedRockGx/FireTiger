@@ -219,6 +219,7 @@ class _RetrievePageState extends State<RetrievePage> {
                           width: ScreenAdapter.setWidth(400),
                           height: ScreenAdapter.setHeight(70),
                           child: RaisedButton(
+                            highlightColor:Theme.of(context).primaryColor,
                             child: Text('下一步', style: TextStyle(fontSize: ScreenAdapter.size(30)),),
                             textColor: Colors.white,
                             color: Theme.of(context).primaryColor,
@@ -320,6 +321,7 @@ class _RetrievePageState extends State<RetrievePage> {
                           width: ScreenAdapter.setWidth(400),
                           height: ScreenAdapter.setHeight(70),
                           child: RaisedButton(
+                            highlightColor:Theme.of(context).primaryColor,
                             child: Text('下一步', style: TextStyle(fontSize: ScreenAdapter.size(30)),),
                             textColor: Colors.white,
                             color: Theme.of(context).primaryColor,
@@ -349,6 +351,7 @@ class _RetrievePageState extends State<RetrievePage> {
                           width: ScreenAdapter.setWidth(400),
                           height: ScreenAdapter.setHeight(70),
                           child: RaisedButton(
+                            highlightColor:Theme.of(context).primaryColor,
                             child: Text('重新登录', style: TextStyle(fontSize: ScreenAdapter.size(30)),),
                             textColor: Colors.white,
                             color: Theme.of(context).primaryColor,

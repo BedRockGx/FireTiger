@@ -1,6 +1,10 @@
 
 
+import 'package:image_picker/image_picker.dart';
+
 class Utils {
+
+  static final ImagePicker _picker = ImagePicker();
 
   // 判断手机号
   static bool isChinaPhoneLegal(String str) {
@@ -13,6 +17,43 @@ class Utils {
   static bool isLoginPassword(String input) {
     RegExp mobile = new RegExp(r"(?![0-9]+$)(?![a-zA-Z]+$)[0-9A-Za-z]{6,20}$");
     return mobile.hasMatch(input);
+  }
+
+
+    /*拍照*/
+  static takePhoto() async {
+    try{
+      var image = await _picker.getImage(source: ImageSource.camera);
+      return image;
+    }catch(e){
+      print('拍照出现错误:'+e);
+    }
+
+  }
+
+  /*相册*/
+  static openGallery() async {
+    try{
+      var image = await _picker.getImage(source: ImageSource.gallery);
+      return image;
+    }catch(e){
+      print('照片选择出现错误:'+e);
+    }
+  }
+
+   /*选取视频*/
+  static getVideo() async {
+    final PickedFile file = await _picker.getVideo(
+          source: ImageSource.gallery, maxDuration: const Duration(seconds: 10));
+          
+    return file;
+  }
+
+  /*拍摄视频*/
+  static takeVideo() async {
+    var video = await _picker.getVideo(source: ImageSource.camera);
+    // print('拍摄视频：' + image.toString());
+    return video;
   }
 
 }

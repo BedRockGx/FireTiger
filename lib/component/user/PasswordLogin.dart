@@ -24,7 +24,7 @@ class _PasswordLoginPageState extends State<PasswordLoginPage> {
             },
           ),
           brightness: Brightness.light,
-          backgroundColor: Color(0xfffff),
+          backgroundColor: Color(0xffFFFFFF),
           elevation: 0
       ),
       body: ScrollConfiguration(
@@ -131,6 +131,7 @@ class _PasswordLoginPageState extends State<PasswordLoginPage> {
                   child: Text('立即登录', style: TextStyle(fontSize: ScreenAdapter.size(30)),),
                   textColor: Colors.white,
                   color: Theme.of(context).primaryColor,
+                  highlightColor:Theme.of(context).primaryColor,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(28),
                   ),
