@@ -1,5 +1,7 @@
 import 'package:firetiger/utils/ScreenAdapter.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:firetiger/provider/matchBarProvider.dart';
 
 class SelectExpandedBar extends StatefulWidget {
   @override
@@ -24,6 +26,9 @@ class _SelectExpandedBarState extends State<SelectExpandedBar> {
 
   @override
   Widget build(BuildContext context) {
+
+    var selectProvider = Provider.of<MatchBarProvider>(context);
+
     return Container(
       padding: EdgeInsets.symmetric(
           horizontal: ScreenAdapter.setWidth(40),
@@ -85,6 +90,7 @@ class _SelectExpandedBarState extends State<SelectExpandedBar> {
                         setState(() {
                           highlight = item['code'];
                         });
+                        selectProvider.setBarIndex(item['code']);
                       },
                     ));
               }).toList()),

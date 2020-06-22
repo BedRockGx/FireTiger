@@ -1,15 +1,39 @@
 import 'package:firetiger/utils/ScreenAdapter.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+
+import 'guessingCompetitionWidget.dart';
 
 class MyGuessingCompetition extends StatefulWidget {
   @override
   _MyGuessingCompetitionState createState() => _MyGuessingCompetitionState();
 }
 
-class _MyGuessingCompetitionState extends State<MyGuessingCompetition> {
+class _MyGuessingCompetitionState extends State<MyGuessingCompetition>  with TickerProviderStateMixin{
 
-  List tabList = ['总场', '胜场', '胜率', '盈亏', '余额'];
-  List tabNum = ['0', '0', '0%', '0', '0'];
+    TabController _tabController;
+
+    List<String> classData = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
+
+    var month;
+
+    var _selectMonth = '1';
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this, initialIndex: 0);
+    _tabController.addListener((){
+      print('监听:${_tabController.index}');
+    });
+    month = DateTime.now().month;
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,483 +54,120 @@ class _MyGuessingCompetitionState extends State<MyGuessingCompetition> {
             Navigator.pop(context);
           },
         ),
+        actions: <Widget>[
+          InkWell(
+            child: Container(
+              margin: EdgeInsets.only(right:ScreenAdapter.setWidth(30)),
+              child: Row(
+                children: <Widget>[
+                  Text('$month月', style: TextStyle(fontSize: ScreenAdapter.size(25), color: Color(0xff666666)),),
+                  SizedBox(
+                    width: ScreenAdapter.setWidth(5),
+                  ),
+                  Icon(IconData(0xe677, fontFamily: 'myIcon'), color: Color(0xff666666), size: ScreenAdapter.size(15),)
+                ],
+              ),
+            ),
+            onTap:showBottom,
+          )
+        ],
+        bottom: TabBar(
+          controller: _tabController,
+          indicatorColor:Theme.of(context).primaryColor,
+          labelColor:Color(0xff333333),
+          labelStyle: TextStyle(fontWeight: FontWeight.bold),
+          unselectedLabelColor:Color(0xff333333),
+          unselectedLabelStyle: TextStyle(fontWeight: FontWeight.normal),
+          indicatorSize:TabBarIndicatorSize.label,
+          tabs: <Widget>[
+            Tab(text: '发起记录',),
+            Tab(text: '参与记录',),
+          ],
+          onTap: (index) {
+            
+          },
+        ),
       ),
-      body: ListView(
+      body: TabBarView(
+        controller: _tabController,
         children: <Widget>[
-          // 顶部Tab数据
-          tabText(),
-          // 商城区域
-          shop(),
-          // 我的竞猜数据
-          guessingCompetition(),
-          // 推荐竞猜
-          historyGuessingCompetition()
+          GuessingCompetitionWidget(1),
+          GuessingCompetitionWidget(2),
         ],
       ),
     );
   }
 
-  Widget tabText(){
-    return Column(
-      children: <Widget>[
-        Container(
-            margin:EdgeInsets.only(top:ScreenAdapter.setHeight(40), bottom:ScreenAdapter.setHeight(20)),
-            padding: EdgeInsets.symmetric(horizontal:ScreenAdapter.setWidth(30)),
-            child: Row(
-              children: tabList.map((v){
-                return Expanded(
-                  flex: 1,
-                  child: Text(v, textAlign: TextAlign.center, style: TextStyle(fontSize: ScreenAdapter.size(30), color: Color(0xffA4A4A4)),),
-                );
-              }).toList(),
-            ),
-          ),
-          Container(
-            margin:EdgeInsets.only(bottom:ScreenAdapter.setHeight(30)),
-            padding: EdgeInsets.symmetric(horizontal:ScreenAdapter.setWidth(30)),
-            child: Row(
-              children: tabNum.map((v){
-                return Expanded(
-                  flex: 1,
-                  child: Text(v, textAlign: TextAlign.center, style: TextStyle(fontSize: ScreenAdapter.size(60), color: Color(0xff333333)),),
-                );
-              }).toList(),
-            ),
-          )
-      ],
-    );
-  }
-
-  Widget shop(){
-    return Container(
-            padding: EdgeInsets.symmetric(horizontal:ScreenAdapter.setWidth(40)),
-            child: Row(
-              children: <Widget>[
-                Expanded(
-                  flex: 1,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Color(0xffF5F5F5),
-                      borderRadius: BorderRadius.all(Radius.circular(10))
-                    ),
-                    padding: EdgeInsets.all(ScreenAdapter.setWidth(40)),
-                    child: Row(
-                      children: <Widget>[
-                        Container(
-                          width: ScreenAdapter.setWidth(50),
-                          child: Image.asset('assets/images/shop.png', fit: BoxFit.cover,)
-                        ),
-                        SizedBox(
-                          width: ScreenAdapter.setWidth(20),
-                        ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Text('乐答商城', style: TextStyle(fontSize: ScreenAdapter.size(30)),),
-                            SizedBox(height: ScreenAdapter.setHeight(5),),
-                            Text('超高中奖率', style: TextStyle(fontSize: ScreenAdapter.size(20), color: Color(0xffA4A4A4)),)
-                          ],
-                        )
-                      ],
+  showBottom(){
+    setState(() {
+      _selectMonth = '1';
+    });
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      elevation: 10,
+      // shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+      builder: (BuildContext context) {
+        return Container(
+          width: double.infinity,
+          height: ScreenAdapter.setHeight(500),
+          child: Column(
+            children: <Widget>[
+              Container(
+                padding: EdgeInsets.all(ScreenAdapter.setWidth(20)),
+                alignment: Alignment.centerRight,
+                decoration: BoxDecoration(
+                  border:Border(
+                    bottom: BorderSide(
+                      width: ScreenAdapter.setHeight(1),
+                      color: Color(0xffE5E5E5)
                     )
-                  ),
-                ),
-                SizedBox(
-                  width: ScreenAdapter.setWidth(20),
-                ),
-                Expanded(
-                  flex: 1,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Color(0xffF5F5F5),
-                      borderRadius: BorderRadius.all(Radius.circular(10))
-                    ),
-                    padding: EdgeInsets.all(ScreenAdapter.setWidth(40)),
-                    child: Row(
-                      children: <Widget>[
-                        Container(
-                          width: ScreenAdapter.setWidth(50),
-                          child: Image.asset('assets/images/award.png', fit: BoxFit.cover,)
-                        ),
-                        SizedBox(
-                          width: ScreenAdapter.setWidth(20),
-                        ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Text('乐答收益榜', style: TextStyle(fontSize: ScreenAdapter.size(30)),),
-                            SizedBox(height: ScreenAdapter.setHeight(5),),
-                            Text('猜胜负 上榜单', style: TextStyle(fontSize: ScreenAdapter.size(20), color: Color(0xffA4A4A4)),)
-                          ],
-                        )
-                      ],
-                    )
-                  ),
-                ),
-              ],
-            ),
-          );
-  }
-
-  Widget guessingCompetition(){
-    return Container(
-      margin: EdgeInsets.only(top:ScreenAdapter.setHeight(60)),
-      child: Column(
-        children: <Widget>[
-          Container(
-            padding: EdgeInsets.symmetric(horizontal:ScreenAdapter.setWidth(40)),
-            child:Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                Expanded(
-                  flex: 1,
-                  child: Text('罗马vs利物浦', overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: ScreenAdapter.size(35), fontWeight: FontWeight.bold),),
-                ),
-                SizedBox(width: ScreenAdapter.setWidth(50),),
-                Text('今天09:00', style: TextStyle(fontSize: ScreenAdapter.size(25), color: Color(0xffA4A4A4)),),
-              ],
-            )
-          ),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal:ScreenAdapter.setWidth(40), vertical: ScreenAdapter.setHeight(5)),
-            alignment: Alignment.centerLeft,
-            child: Text('17/18赛季欧冠半决赛',  overflow: TextOverflow.ellipsis,  style: TextStyle(fontSize: ScreenAdapter.size(25), color: Color(0xffA4A4A4)),),
-          ),
-
-          Container(
-            padding: EdgeInsets.symmetric(vertical:ScreenAdapter.setHeight(10), horizontal:ScreenAdapter.setWidth(20)),
-            child: Row(
-              children: <Widget>[
-                Expanded(
-                  flex: 7,
-                  child: Container(
-                    padding: EdgeInsets.all(ScreenAdapter.setWidth(20)),
-                    height: ScreenAdapter.setHeight(130),
-                    decoration: BoxDecoration(
-                      color: Color(0xffF5F5F5),
-                      borderRadius: BorderRadius.only(topLeft:Radius.circular(10), bottomLeft:Radius.circular(10))
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: <Widget>[
-                        Text('哪方先进2球？', overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: ScreenAdapter.size(35), fontWeight: FontWeight.bold),),
-                        
-                        Container(
-                          padding: EdgeInsets.all(5),
-                          decoration: BoxDecoration(
-                            color: Colors.red,
-                            borderRadius: BorderRadius.all(Radius.circular(5))
-                          ),
-                          child: Text('未封盘', style: TextStyle(fontSize: ScreenAdapter.size(20), color: Colors.white)),
-                        )
-                      ],
-                    ),
                   )
                 ),
-                Expanded(
-                  flex: 6,
+                child: InkWell(
                   child: Container(
-                    padding: EdgeInsets.all(ScreenAdapter.setWidth(20)),
-                    height: ScreenAdapter.setHeight(130),
+                    padding: EdgeInsets.symmetric(vertical:ScreenAdapter.setHeight(10), horizontal:ScreenAdapter.setWidth(30)),
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                          colors: [
-                        
-                        Color(0xff9582FF),
-                        Color(0xff418DFF),
-                      ]),
-                      borderRadius: BorderRadius.only(topRight:Radius.circular(10), bottomRight:Radius.circular(10))
+                      color: Theme.of(context).primaryColor,
+                      borderRadius: BorderRadius.all(Radius.circular(20))
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: <Widget>[
-                        Row(
-                          children: <Widget>[
-                            Expanded(
-                              flex: 1,
-                              child: Text('我的选择', style: TextStyle(fontSize: ScreenAdapter.size(25), color: Colors.white54),),
-                            ),
-                            Expanded(
-                              flex: 1,
-                              child: Text('利物浦',  textAlign: TextAlign.end, style: TextStyle(fontSize: ScreenAdapter.size(25), color: Colors.white),),
-                            )
-                          ],
-                        ),
-                        Row(
-                          
-                          children: <Widget>[
-                            Expanded(
-                              flex: 1,
-                              child: Text('我的投注', style: TextStyle(fontSize: ScreenAdapter.size(25), color: Colors.white54),),
-                            ),
-                            Expanded(
-                              flex: 1,
-                              child: Text('99千万', textAlign: TextAlign.end, style: TextStyle(fontSize: ScreenAdapter.size(25), color: Colors.white),),
-                            )
-                          ],
-                        ),
-                      ],
-                    ),
-                  )
+                    child: Text('确定', style: TextStyle(color: Colors.white, fontSize: ScreenAdapter.size(25)),),
+                  ),
+                  onTap: (){
+                    
+                    // _selectMonth == '' ?  month = classData[0] : month = _selectMonth;
+                    print(_selectMonth);
+                    setState(() {
+                      month = _selectMonth;
+                    });
+                    Navigator.pop(context);
+                  },
                 )
-              ],
-            ),
-          ),
-
-          Container(
-            padding: EdgeInsets.symmetric(vertical:ScreenAdapter.setHeight(10), horizontal:ScreenAdapter.setWidth(20)),
-            child: Row(
-              children: <Widget>[
-                Expanded(
-                  flex: 7,
-                  child: Container(
-                    padding: EdgeInsets.all(ScreenAdapter.setWidth(20)),
-                    height: ScreenAdapter.setHeight(130),
-                    decoration: BoxDecoration(
-                      color: Color(0xffF5F5F5),
-                      borderRadius: BorderRadius.only(topLeft:Radius.circular(10), bottomLeft:Radius.circular(10))
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: <Widget>[
-                        Text('球员是首发吗卡几点回家卡手动滑稽？', overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: ScreenAdapter.size(35), fontWeight: FontWeight.bold),),
-                        
-                        Container(
-                          padding: EdgeInsets.all(5),
-                          decoration: BoxDecoration(
-                            color: Color(0xffC1C1C1),
-                            borderRadius: BorderRadius.all(Radius.circular(5))
-                          ),
-                          child: Text('已封盘', style: TextStyle(fontSize: ScreenAdapter.size(20), color: Colors.white)),
-                        )
-                      ],
-                    ),
-                  )
+              ),
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: ScreenAdapter.setHeight(400)
                 ),
-                Expanded(
-                  flex: 6,
-                  child: Container(
-                    padding: EdgeInsets.all(ScreenAdapter.setWidth(20)),
-                    height: ScreenAdapter.setHeight(130),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                          colors: [
-                        
-                        Color(0xffFD7186),
-                        Color(0xffFFA65E),
-                      ]),
-                      borderRadius: BorderRadius.only(topRight:Radius.circular(10), bottomRight:Radius.circular(10))
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: <Widget>[
-                        Row(
-                          children: <Widget>[
-                            Expanded(
-                              flex: 1,
-                              child: Text('我的选择', style: TextStyle(fontSize: ScreenAdapter.size(25), color: Colors.white54),),
-                            ),
-                            Expanded(
-                              flex: 1,
-                              child: Text('利物浦',  textAlign: TextAlign.end, style: TextStyle(fontSize: ScreenAdapter.size(25), color: Colors.white),),
-                            )
-                          ],
-                        ),
-                        Row(
-                          
-                          children: <Widget>[
-                            Expanded(
-                              flex: 1,
-                              child: Text('我的投注', style: TextStyle(fontSize: ScreenAdapter.size(25), color: Colors.white54),),
-                            ),
-                            Expanded(
-                              flex: 1,
-                              child: Text('99千万', textAlign: TextAlign.end, style: TextStyle(fontSize: ScreenAdapter.size(25), color: Colors.white),),
-                            )
-                          ],
-                        ),
-                      ],
-                    ),
-                  )
+                child: CupertinoPicker(
+                  itemExtent: ScreenAdapter.setHeight(70),
+                  diameterRatio: 1,
+                  backgroundColor: Colors.white,
+                  onSelectedItemChanged: (index){
+                    print('选中下标:${classData[index]}');
+                    setState(() {
+                      _selectMonth = classData[index];
+                    });
+                  },
+                  children: classData.map((item){
+                    return Center(
+                      child: Text('$item月'),
+                    );
+                  }).toList()
                 )
-              ],
-            ),
-          )
-        ],
-      ),
-    );
-  }
-
-  Widget historyGuessingCompetition(){
-    return Container(
-      margin: EdgeInsets.symmetric(vertical:ScreenAdapter.setHeight(60)),
-      child: Column(
-        children: <Widget>[
-          Container(
-            padding: EdgeInsets.symmetric(horizontal:ScreenAdapter.setWidth(40)),
-            child:Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                Expanded(
-                  flex: 1,
-                  child: Text('高速vs新疆喀什古城埃里克森大家可拉伸的杰拉德', overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: ScreenAdapter.size(35), fontWeight: FontWeight.bold),),
-                ),
-                SizedBox(
-                  width: ScreenAdapter.setWidth(50),
-                ),
-                Text('2020-04-30 09:00', style: TextStyle(fontSize: ScreenAdapter.size(25), color: Color(0xffA4A4A4)),),
-              ],
-            )
+              )
+            ],
           ),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal:ScreenAdapter.setWidth(40), vertical: ScreenAdapter.setHeight(5)),
-            alignment: Alignment.centerLeft,
-            child: Text('CBA16/17赛季季后赛1/4决赛第4', overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: ScreenAdapter.size(25), color: Color(0xffA4A4A4)),),
-          ),
-
-          Container(
-            margin: EdgeInsets.symmetric(vertical:ScreenAdapter.setHeight(10), horizontal:ScreenAdapter.setWidth(20)),
-            padding: EdgeInsets.all(ScreenAdapter.setWidth(20)),
-            height: ScreenAdapter.setHeight(160),
-            decoration: BoxDecoration(
-              color: Color(0xffF5F5F5),
-              borderRadius: BorderRadius.all(Radius.circular(10))
-            ),
-            child: Row(
-              children: <Widget>[
-                Expanded(
-                  flex: 7,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text('哪方先得80分？'),
-                      Container(
-                        padding: EdgeInsets.all(5),
-                        decoration: BoxDecoration(
-                          color: Color(0xffC1C1C1),
-                          borderRadius: BorderRadius.all(Radius.circular(5))
-                        ),
-                        child: Text('已结束', style: TextStyle(fontSize: ScreenAdapter.size(20), color: Colors.white)),
-                      ),
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal:ScreenAdapter.setWidth(20), vertical:ScreenAdapter.setHeight(5)),
-                        decoration: BoxDecoration(
-                          color: Colors.red,
-                          borderRadius: BorderRadius.all(Radius.circular(10))
-                        ),
-                        child: Text('胜', style: TextStyle(fontSize: ScreenAdapter.size(20), color: Colors.white, fontWeight: FontWeight.bold)),
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  flex: 6,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: <Widget>[
-                          Text('我的选择',style: TextStyle(fontSize: ScreenAdapter.size(25), color: Color(0xff666666))),
-                          Text('新疆喀什古城', style: TextStyle(fontSize: ScreenAdapter.size(25), fontWeight: FontWeight.bold))
-                        ],
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: <Widget>[
-                          Text('我的投注',style: TextStyle(fontSize: ScreenAdapter.size(25), color: Color(0xff666666))),
-                          Text('999万', style: TextStyle(fontSize: ScreenAdapter.size(25), fontWeight: FontWeight.bold))
-                        ],
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: <Widget>[
-                          Text('我的收入',style: TextStyle(fontSize: ScreenAdapter.size(25), color: Color(0xff666666))),
-                          Text('+12千万', style: TextStyle(fontSize: ScreenAdapter.size(25), fontWeight: FontWeight.bold, color: Colors.red))
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          Container(
-            margin: EdgeInsets.symmetric(vertical:ScreenAdapter.setHeight(10), horizontal:ScreenAdapter.setWidth(20)),
-            padding: EdgeInsets.all(ScreenAdapter.setWidth(20)),
-            height: ScreenAdapter.setHeight(160),
-            decoration: BoxDecoration(
-              color: Color(0xffF5F5F5),
-              borderRadius: BorderRadius.all(Radius.circular(10))
-            ),
-            child: Row(
-              children: <Widget>[
-                Expanded(
-                  flex: 7,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text('哪方先得80分？'),
-                      Container(
-                        padding: EdgeInsets.all(5),
-                        decoration: BoxDecoration(
-                          color: Color(0xffC1C1C1),
-                          borderRadius: BorderRadius.all(Radius.circular(5))
-                        ),
-                        child: Text('已结束', style: TextStyle(fontSize: ScreenAdapter.size(20), color: Colors.white)),
-                      ),
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal:ScreenAdapter.setWidth(20), vertical:ScreenAdapter.setHeight(5)),
-                        decoration: BoxDecoration(
-                          color: Colors.red,
-                          borderRadius: BorderRadius.all(Radius.circular(10))
-                        ),
-                        child: Text('胜', style: TextStyle(fontSize: ScreenAdapter.size(20), color: Colors.white, fontWeight: FontWeight.bold)),
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  flex: 6,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: <Widget>[
-                          Text('我的选择',style: TextStyle(fontSize: ScreenAdapter.size(25), color: Color(0xff666666))),
-                          Text('新疆喀什古城', style: TextStyle(fontSize: ScreenAdapter.size(25), fontWeight: FontWeight.bold))
-                        ],
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: <Widget>[
-                          Text('我的投注',style: TextStyle(fontSize: ScreenAdapter.size(25), color: Color(0xff666666))),
-                          Text('1000', style: TextStyle(fontSize: ScreenAdapter.size(25), fontWeight: FontWeight.bold))
-                        ],
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: <Widget>[
-                          Text('我的收入',style: TextStyle(fontSize: ScreenAdapter.size(25), color: Color(0xff666666))),
-                          Text('-1000', style: TextStyle(fontSize: ScreenAdapter.size(25), fontWeight: FontWeight.bold, color: Color(0xff3661FF)))
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          )
-        ],
-      ),
-    );
+        );
+      });
   }
 }

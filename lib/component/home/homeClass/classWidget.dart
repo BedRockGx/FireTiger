@@ -26,7 +26,7 @@ class _ClassWidgetState extends State<ClassWidget> {
           ),
           HorseLantern(),
           Container(
-            padding: EdgeInsets.symmetric(horizontal:ScreenAdapter.setWidth(30)),
+            padding: EdgeInsets.symmetric(horizontal:ScreenAdapter.setWidth(40)),
             child: Column(
               children: <Widget>[
                 

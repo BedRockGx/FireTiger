@@ -20,7 +20,7 @@ class _ClassWidgetState extends State<ClassWidget> {
       child: ListView(
         padding: EdgeInsets.symmetric(horizontal:ScreenAdapter.setWidth(30)),
         children: <Widget>[
-          VideoList()
+          VideoList(isUnpublished:false, isLiveAnchor:false)
         ]));
   }
 }

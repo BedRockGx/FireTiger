@@ -1,5 +1,6 @@
 
 
+import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 class Utils {
@@ -54,6 +55,24 @@ class Utils {
     var video = await _picker.getVideo(source: ImageSource.camera);
     // print('拍摄视频：' + image.toString());
     return video;
+  }
+
+
+    // 判断显示等级
+  static ImageProvider panImage(n){
+    if(n<11){
+      return AssetImage('assets/images/tag1.png');
+    }else if(10<n && n<31){
+      return AssetImage('assets/images/tag2.png');
+    }else if(30<n && n<51){
+      return AssetImage('assets/images/tag3.png');
+    }else if(50<n && n<71){
+      return AssetImage('assets/images/tag4.png');
+    }else if(70<n && n<101){
+      return AssetImage('assets/images/tag5.png');
+    }else{
+      return AssetImage('assets/images/tag5.png');
+    }
   }
 
 }

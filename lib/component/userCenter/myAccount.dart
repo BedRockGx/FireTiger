@@ -54,7 +54,10 @@ class _MyAccountState extends State<MyAccount> {
                       children: <Widget>[
                         Row(
                           children: <Widget>[
-                            Icon(Icons.help, color: Colors.white, size: ScreenAdapter.size(40),),
+                            Container(
+                              width: ScreenAdapter.setWidth(40),
+                              child: Image.asset('assets/images/hj.png', fit: BoxFit.cover,),
+                            ),
                             SizedBox(width: ScreenAdapter.setWidth(10),),
                             Text('火花', style: TextStyle(fontSize: ScreenAdapter.size(30), color: Colors.white))
                           ],
@@ -106,7 +109,10 @@ class _MyAccountState extends State<MyAccount> {
                       children: <Widget>[
                         Row(
                           children: <Widget>[
-                            Icon(Icons.help, color: Colors.white, size: ScreenAdapter.size(40),),
+                            Container(
+                              width: ScreenAdapter.setWidth(40),
+                              child: Image.asset('assets/images/jb.png', fit: BoxFit.cover,),
+                            ),
                             SizedBox(width: ScreenAdapter.setWidth(10),),
                             Text('火虎币', style: TextStyle(fontSize: ScreenAdapter.size(30), color: Colors.white))
                           ],
@@ -179,7 +185,7 @@ class _MyAccountState extends State<MyAccount> {
                     Container(
                       width: ScreenAdapter.setWidth(50),
                       margin: EdgeInsets.only(right:ScreenAdapter.setWidth(15)),
-                      child: Icon(Icons.help),
+                      child: Image.asset('assets/images/huohuan.png', fit: BoxFit.cover,)
                     ),
                     Expanded(
                       flex: 1,
@@ -208,7 +214,7 @@ class _MyAccountState extends State<MyAccount> {
                     Container(
                       width: ScreenAdapter.setWidth(50),
                       margin: EdgeInsets.only(right:ScreenAdapter.setWidth(15)),
-                      child: Icon(Icons.help),
+                      child: Image.asset('assets/images/jb.png', fit: BoxFit.cover,)
                     ),
                     Expanded(
                       flex: 1,

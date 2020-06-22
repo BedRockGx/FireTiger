@@ -136,10 +136,15 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
           Container(
             padding: EdgeInsets.only(left: ScreenAdapter.setWidth(30)),
             alignment: Alignment.centerLeft,
-            child: Icon(
-              IconData(0xe654, fontFamily: 'myIcon'),
-              size: ScreenAdapter.size(60),
-              color: Color(0xff333333),
+            child: IconButton(
+              icon: Icon(
+                IconData(0xe654, fontFamily: 'myIcon'),
+                size: ScreenAdapter.size(60),
+                color: Color(0xff333333),
+              ),
+              onPressed: (){
+                Navigator.pop(context);
+              },
             ),
           ),
           Container(
@@ -501,9 +506,9 @@ class ActionList extends StatelessWidget {
       padding: EdgeInsets.all(ScreenAdapter.setWidth(30)),
       child: Column(
         children: <Widget>[
-          mylistTile('我的关注', () {
+          // mylistTile('我的关注', () {
 
-          }, 'assets/images/gz.png'),
+          // }, 'assets/images/gz.png'),
           Divider(),
           mylistTile('我的视频', () {
             Navigator.pushNamed(context, '/myVideo');
@@ -520,6 +525,30 @@ class ActionList extends StatelessWidget {
           mylistTile('设置', () {
             Navigator.pushNamed(context, '/settings');
           }, 'assets/images/sz.png'),
+          RaisedButton(
+            child: Text('注册'),
+            onPressed: (){
+              Navigator.pushNamed(context, '/register');
+            },
+          ),
+          RaisedButton(
+            child: Text('找回密码'),
+            onPressed: (){
+              Navigator.pushNamed(context, '/retrieve');
+            },
+          ),
+          RaisedButton(
+            child: Text('登录'),
+            onPressed: (){
+              Navigator.pushNamed(context, '/login');
+            },
+          ),
+          RaisedButton(
+            child: Text('商城'),
+            onPressed: (){
+              Navigator.pushNamed(context, '/shoppingMall');
+            },
+          ),
         ],
       ),
     );

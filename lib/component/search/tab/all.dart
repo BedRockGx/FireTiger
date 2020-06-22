@@ -597,7 +597,5 @@ class _SearchTabAllState extends State<SearchTabAll> {
     }else if(70<n && n<101){
       return AssetImage('assets/images/tag5.png');
     }
-    
-    
   }
 }

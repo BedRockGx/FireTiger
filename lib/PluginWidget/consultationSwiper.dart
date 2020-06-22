@@ -108,7 +108,7 @@ class ConsulationSwiper extends StatelessWidget {
                               bottom: 5,
                               left: 5,
                               child: Container(
-                                width: ScreenAdapter.setWidth(630),
+                                width: ScreenAdapter.setWidth(600),
                                 padding: EdgeInsets.all(ScreenAdapter.setWidth(10)),
                                 child: Text('足球足球足球萨克的骄傲了开始对接拉上来对接口了',maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(color: Color.fromRGBO(255, 255, 255, 0.9), fontWeight: FontWeight.bold, fontSize: ScreenAdapter.size(30))),
                               ),

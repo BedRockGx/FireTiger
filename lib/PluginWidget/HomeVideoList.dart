@@ -10,7 +10,7 @@ class HomeVideoList extends StatefulWidget {
 }
 
 class _VideoListState extends State<HomeVideoList> {
-  var itemWidth = (ScreenAdapter.getScreenWidth() - 60) / 2; // 每一个网格的宽度
+  var itemWidth = (ScreenAdapter.getScreenWidth() - ScreenAdapter.setWidth(110)) / 2; // 每一个网格的宽度
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +19,7 @@ class _VideoListState extends State<HomeVideoList> {
       child: Column(
       children: <Widget>[
          Wrap(
-              spacing: ScreenAdapter.setWidth(40), // 平行距离
+              spacing: ScreenAdapter.setWidth(30), // 平行距离
               runSpacing: ScreenAdapter.setHeight(20), // 上下距离
               children: [
                 Container(

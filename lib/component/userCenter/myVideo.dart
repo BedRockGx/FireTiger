@@ -19,6 +19,9 @@ class _MyVideoState extends State<MyVideo>  with SingleTickerProviderStateMixin{
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     _pageController = PageController();
+    _tabController.addListener((){
+      print('监听:${_tabController.index}');
+    });
   }
 
   @override
@@ -68,6 +71,7 @@ class _MyVideoState extends State<MyVideo>  with SingleTickerProviderStateMixin{
               onTap: (index) {
                 _pageController.jumpToPage(index);
               },
+              
             ),
           ),
           Expanded(
@@ -79,7 +83,7 @@ class _MyVideoState extends State<MyVideo>  with SingleTickerProviderStateMixin{
                 children: <Widget>[
                   Container(
                     padding: EdgeInsets.all(ScreenAdapter.setWidth(30)),
-                    child: VideoList(),
+                    child: VideoList(isUnpublished:false, isLiveAnchor:false),
                   )
                 ],
               ),
@@ -87,7 +91,7 @@ class _MyVideoState extends State<MyVideo>  with SingleTickerProviderStateMixin{
                 children: <Widget>[
                   Container(
                     padding: EdgeInsets.all(ScreenAdapter.setWidth(30)),
-                    child: VideoList(),
+                    child: VideoList(isUnpublished:false, isLiveAnchor:false),
                   )
                 ],
               ),
@@ -95,7 +99,7 @@ class _MyVideoState extends State<MyVideo>  with SingleTickerProviderStateMixin{
                 children: <Widget>[
                   Container(
                     padding: EdgeInsets.all(ScreenAdapter.setWidth(30)),
-                    child: VideoList(isUnpublished: true,),
+                    child: VideoList(isUnpublished: true, isLiveAnchor:false),
                   )
                 ],
               ),

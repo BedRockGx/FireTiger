@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:firetiger/provider/matchBarProvider.dart';
 import 'package:firetiger/router/routers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -13,7 +14,10 @@ void main(){
     SystemUiOverlayStyle systemUiOverlayStyle =
         SystemUiOverlayStyle(statusBarColor: Colors.transparent);
     SystemChrome.setSystemUIOverlayStyle(systemUiOverlayStyle);
+
+    
   }
+
 
   runApp(MyApp());
 }
@@ -26,7 +30,11 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
-    return  MaterialApp(
+    return  MultiProvider(
+      providers:[
+        ChangeNotifierProvider(create: (_)=>MatchBarProvider(),)
+      ],
+      child: MaterialApp(
         title: 'fireTiger',
         initialRoute: '/',
         theme: ThemeData(
@@ -37,7 +45,9 @@ class _MyAppState extends State<MyApp> {
         ),
         onGenerateRoute: onGenerateRoute,
         debugShowCheckedModeBanner: false,
-      );
+      ),
+    );
+    
     
   }
 }

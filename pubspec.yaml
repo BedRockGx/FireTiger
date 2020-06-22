@@ -34,6 +34,15 @@ dependencies:
   image_cropper:                                  # 裁剪图片
   fijkplayer:                                     # 视频播放器
   flutter_cupertino_date_picker:                  # 日期选择器
+  city_pickers:
+  flutter_html:
+  share:
+  event_bus:
+  like_button:                                    # 点赞动画
+  fl_chart:                                       # 数据图表
+  percent_indicator:                              # 圆形数据表
+  webview_flutter:                                
+
 
 dev_dependencies:
   flutter_test:
@@ -80,6 +89,34 @@ flutter:
     - assets/images/bzb.png
     - assets/images/gift.png
     - assets/images/comments.png
+    - assets/images/hj.png
+    - assets/images/jb.png
+    - assets/images/lwh.png
+    - assets/images/jb2.png
+    - assets/images/address.png
+    - assets/images/over.png
+    - assets/images/time.png
+    - assets/images/live.png
+    - assets/images/nofollow.png
+    - assets/images/basketball.png
+    - assets/images/footballball.png
+    - assets/images/videoGame.png
+    - assets/images/golf.png
+    - assets/images/gj.png
+    - assets/images/jj.png
+    - assets/images/yj.png
+    - assets/images/ranking-1.png
+    - assets/images/ranking-2.png
+    - assets/images/ranking-3.png
+    - assets/images/ranking-other.png
+    - assets/images/hd.png
+    - assets/images/pay.png
+    - assets/images/livelw.png
+    - assets/images/jg.png
+    - assets/images/redP.png
+    - assets/images/yellowP.png
+    - assets/images/pennant.png
+    
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

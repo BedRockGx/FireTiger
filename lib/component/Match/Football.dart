@@ -40,7 +40,7 @@ class _FootballState extends State<Football> with TickerProviderStateMixin{
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Color(0xffFAFAFA),
-        elevation: 1,
+        elevation: 0,
         title: Stack(
           children: <Widget>[
             NoShadowTabBar(

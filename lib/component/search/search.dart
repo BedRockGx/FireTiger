@@ -229,6 +229,7 @@ class _SearchPageState extends State<SearchPage> {
             Navigator.pop(context);
           },
         ),
+        brightness: Brightness.light,
         title: Container(
                 child:Row(
                 mainAxisAlignment: MainAxisAlignment.start,
