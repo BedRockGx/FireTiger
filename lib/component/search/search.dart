@@ -1,10 +1,16 @@
+import 'dart:convert';
+
+import 'package:dio/dio.dart';
 import 'package:firetiger/component/search/searchTabBar.dart';
+import 'package:firetiger/http/api.dart';
+import 'package:firetiger/provider/searDataProvider.dart';
 import 'package:firetiger/utils/Behavior.dart';
 import 'package:firetiger/utils/PublicStorage.dart';
 import 'package:firetiger/utils/ScreenAdapter.dart';
 import 'package:flutter/material.dart';
 
-import 'package:fluttertoast/fluttertoast.dart'; // 提示
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:provider/provider.dart'; // 提示
 
 class SearchPage extends StatefulWidget {
   @override
@@ -15,14 +21,11 @@ class _SearchPageState extends State<SearchPage> {
   // var _keywords = '';
   TextEditingController _keywords = TextEditingController();
   List _historyListData = [];
-  List _hotListData = [
-    {'title':'世界杯', 'isRed':true},
-    {'title':'意甲积分榜', 'isRed':true},
-    {'title':'古迪逊公园广场', 'isRed':false},
-    {'title':'前曼联主帅', 'isRed':false},
-    {'title':'足球', 'isRed':false},
-  ];
+  List<Map> _hotListData = [];
   var isSearch = false;
+  var searchData;
+
+  var api =Api();
 
   // List data = ['lorem', 'loremasd', 'HelloWorld', '睡觉觉啊', '袭击我去呜呜呜', '上世纪'];
 
@@ -30,6 +33,7 @@ class _SearchPageState extends State<SearchPage> {
   void initState() {
     super.initState();
     this._getHistoryData();
+    this._getHotSearch();
   }
 
   // 获取本地存储
@@ -39,6 +43,34 @@ class _SearchPageState extends State<SearchPage> {
     setState(() {
       this._historyListData = _historyListData;
     });
+  }
+
+  // 获取热门搜索
+  _getHotSearch(){
+    api.getData(context, 'getHotSearch').then((val){
+      var res = json.decode(val.toString());
+      setState(() {
+        _hotListData = (res['data']['info'] as List).cast();
+      });
+    });
+  }
+
+  Future _getSearchData() async {
+    // print('触发搜索：${_keywords.text}');
+    Response response;
+    var formData = {'keyWord':_keywords.text};
+    var uid = await PublicStorage.getHistoryList('uuid');
+    var token = await PublicStorage.getHistoryList('token');
+    if(uid.isNotEmpty){
+      formData['uid'] = uid[0];
+      formData['token'] = token[0];
+    }
+    print(formData);
+    response = await api.getData(context, 'getSearchList', formData: formData);
+    var v =  json.decode(response.toString());
+    print(v);
+    return v['data']['info'];
+    // return [];
   }
 
   // 弹出框
@@ -54,15 +86,12 @@ class _SearchPageState extends State<SearchPage> {
               FlatButton(
                 child: Text('取消', style: TextStyle(fontSize: ScreenAdapter.size(30)),),
                 onPressed: () {
-                  print('点击了取消');
                   Navigator.pop(context, 'Cancle');
                 },
               ),
               FlatButton(
                 child: Text('确定', style: TextStyle(fontSize: ScreenAdapter.size(30)),),
                 onPressed: () async {
-                  // 异步删除
-                  print(keywords);
                   await PublicStorage.replaceListHistoryData(
                       'searchList', keywords);
                   this._getHistoryData();
@@ -74,6 +103,7 @@ class _SearchPageState extends State<SearchPage> {
         });
   }
 
+  // 确定删除
   _alertDeleteDialog() async {
     var result = await showDialog(
         barrierDismissible: false, // 表示点击灰色背景的时候是否消失弹出框
@@ -86,7 +116,6 @@ class _SearchPageState extends State<SearchPage> {
               FlatButton(
                 child: Text('取消', style: TextStyle(fontSize: ScreenAdapter.size(30)),),
                 onPressed: () {
-                  print('点击了取消');
                   Navigator.pop(context, 'Cancle');
                 },
               ),
@@ -106,6 +135,7 @@ class _SearchPageState extends State<SearchPage> {
 
   // 是否展示搜索推荐
   Widget _isShowRecommend() {
+    var searchDataProvider = Provider.of<SearchDataProvider>(context);
     // 如果没有数据，就返回推荐数组，如果有数据就返回数组当中查找到的
     // final suggestionList = _keywords.text.isEmpty
     //     ? recentSuggest
@@ -162,7 +192,10 @@ class _SearchPageState extends State<SearchPage> {
                         _keywords.text = value;
                         isSearch = true;
                         searchMetod();
-                        print(_keywords.text);
+                      });
+
+                      _getSearchData().then((v){
+                        searchDataProvider.setSearchData(v);
                       });
                     },
                   );
@@ -190,9 +223,9 @@ class _SearchPageState extends State<SearchPage> {
                   return InkWell(
                     child: Container(
                       child: RawChip(
-                        backgroundColor: value['isRed'] ? Color(0xffFFEBEC) : Color(0xffEFEFEF),
+                        backgroundColor: int.parse(value['search_count']) > 500 ? Color(0xffFFEBEC) : Color(0xffEFEFEF),
                         padding: EdgeInsets.all(ScreenAdapter.setHeight(10)),
-                        label: Text(value['title'], style: TextStyle(fontSize: ScreenAdapter.size(30), color:value['isRed'] ? Color(0xffFF3641) : Color(0xff333333))),
+                        label: Text(value['keyword'], style: TextStyle(fontSize: ScreenAdapter.size(30), color:int.parse(value['search_count']) > 500 ? Color(0xffFF3641) : Color(0xff333333))),
                       )
                     ),
                     onLongPress: () {
@@ -201,10 +234,13 @@ class _SearchPageState extends State<SearchPage> {
                     onTap: () {
                       // print(value);
                       setState(() {
-                        _keywords.text = value['title'];
+                        _keywords.text = value['keyword'];
                         isSearch = true;
                         searchMetod();
-                        print(_keywords.text);
+                      });
+
+                      _getSearchData().then((v){
+                        searchDataProvider.setSearchData(v);
                       });
                     },
                   );
@@ -213,12 +249,13 @@ class _SearchPageState extends State<SearchPage> {
             ),
           ));
     } else {
-      return SearchTabBar();
+      return SearchTabBar(data:searchData);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+     var searchDataProvider = Provider.of<SearchDataProvider>(context);
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Color(0xffFAFAFA),
@@ -275,6 +312,9 @@ class _SearchPageState extends State<SearchPage> {
                                           setState(() {
                                             isSearch = true;
                                           });
+                                         _getSearchData().then((v){
+                                           searchDataProvider.setSearchData(v);
+                                         });
                                         } else {
                                           setState(() {
                                             isSearch = false;
@@ -301,7 +341,13 @@ class _SearchPageState extends State<SearchPage> {
                               '搜索',
                               style: TextStyle(fontSize: ScreenAdapter.size(30), color: Color(0xff666666))
                             ),
-                            onTap: searchMetod,
+                            onTap: (){
+                              searchMetod();
+                              _getSearchData().then((v){
+                                // print(v);
+                                // searchDataProvider.setSearchData(v);
+                              });
+                            },
                           )
                           :
                           InkWell(
@@ -324,7 +370,7 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   searchMetod() async {
-    print('会触发吗？？？？？');
+    // var searchDataProvider = Provider.of<SearchDataProvider>(context);
     if (isSearch) {
       // 等待本地存储
       await PublicStorage.setHistoryList('searchList', this._keywords.text,
@@ -343,6 +389,7 @@ class _SearchPageState extends State<SearchPage> {
       // };
       // print(arguments);
       // Navigator.pushNamed(context, '/register', arguments: arguments);
+      
     } else {
       Fluttertoast.showToast(msg: '请输入内容');
     }

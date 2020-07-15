@@ -19,6 +19,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -42,6 +44,10 @@ dependencies:
   fl_chart:                                       # 数据图表
   percent_indicator:                              # 圆形数据表
   webview_flutter:                                
+  pull_to_refresh:                                # 下拉刷新上拉加载
+  rongcloud_im_plugin:
+  convex_bottom_bar:                              # 底部bottom切换动画
+  # scroll_bottom_navigation_bar:                   # 滚动时隐藏tab动画
 
 
 dev_dependencies:
@@ -116,6 +122,22 @@ flutter:
     - assets/images/redP.png
     - assets/images/yellowP.png
     - assets/images/pennant.png
+    - assets/images/dy.png
+    - assets/images/MatchHeader.png
+    - assets/images/bkb.png
+    - assets/images/fb.png
+    - assets/images/vd.png
+    - assets/images/vs.png
+    - assets/images/home.png
+    - assets/images/like.png
+    - assets/images/live_nor.png
+    - assets/images/expert.png
+    - assets/images/game.png
+    - assets/images/home_lable.png
+    - assets/images/like_lable.png
+    - assets/images/live_lable.png
+    - assets/images/expert_lable.png
+    - assets/images/game_lable.png
     
 
   # An image asset can refer to one or more resolution-specific "variants", see

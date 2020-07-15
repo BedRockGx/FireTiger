@@ -1,4 +1,8 @@
+import 'dart:convert';
+
 import 'package:firetiger/PluginWidget/ImageRound.dart';
+import 'package:firetiger/http/api.dart';
+import 'package:firetiger/utils/PublicStorage.dart';
 import 'package:firetiger/utils/ScreenAdapter.dart';
 import 'package:flutter/material.dart';
 
@@ -10,11 +14,47 @@ class MyMessage extends StatefulWidget {
 class _MyMessageState extends State<MyMessage> with TickerProviderStateMixin{
 
   TabController _tabController;
+  var api = Api();
+  var _messagePage = 1;
+  var _commentPage = 1;
+  var _commentSize = 10;
+  var uid,token;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this, initialIndex: 0);
+    _getHistoryData();
+    
+  }
+
+    _getHistoryData() async {
+    var uuid = await PublicStorage.getHistoryList('uuid');
+    var tokens = await PublicStorage.getHistoryList('token');
+    print(tokens);
+    if(uuid.isEmpty && tokens.isEmpty){
+      Navigator.pushReplacementNamed(context, '/login');
+      return;
+    }else{
+      setState(() {
+        uid = uuid[0];
+        token = tokens[0];
+      });
+      _getMessageData();
+      _getCommentData();
+    }
+  }
+
+  _getMessageData()  {
+    api.getData(context, 'getUserNotice', formData: {'uid':uid, 'token':token, 'p':_messagePage}).then((val){
+      var res = json.decode(val.toString());
+    });
+  }
+
+  _getCommentData()  {
+    api.getData(context, 'getCommentsList', formData: {'uid':uid, 'token':token, 'p':_commentPage, 'size':_commentSize}).then((val){
+      var res = json.decode(val.toString());
+    });
   }
 
   @override
@@ -234,7 +274,7 @@ class Comment extends StatelessWidget {
               children: <Widget>[
                 Row(
                   children: <Widget>[
-                    ImageRoud('https://dss0.bdstatic.com/70cFvHSh_Q1YnxGkpoWK1HF6hhy/it/u=1645281985,1508138129&fm=111&gp=0.jpg', 60),
+                    ImageRoud('https://dss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=2034740944,4251903193&fm=26&gp=0.jpg', 60),
                     SizedBox(width: ScreenAdapter.setWidth(20),),
                     Expanded(
                     flex: 1,

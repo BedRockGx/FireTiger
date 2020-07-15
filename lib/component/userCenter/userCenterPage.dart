@@ -1,7 +1,15 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:firetiger/PluginWidget/GreyDivider.dart';
 import 'package:firetiger/PluginWidget/ImageRound.dart';
+import 'package:firetiger/http/api.dart';
+import 'package:firetiger/provider/UserInfoProvider.dart';
+import 'package:firetiger/utils/AlertMsg.dart';
+import 'package:firetiger/utils/PublicStorage.dart';
 import 'package:firetiger/utils/ScreenAdapter.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:transparent_image/transparent_image.dart';
 
 class UserCenterPage extends StatefulWidget {
@@ -10,6 +18,12 @@ class UserCenterPage extends StatefulWidget {
 }
 
 class _UserCenterPageState extends State<UserCenterPage> {
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     double rpx = MediaQuery.of(context).size.width / 750;
@@ -34,12 +48,15 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
   double prevdy; // 初始点击位置
   BoxFit fitType; // 图片的适应方式
   Color _customappBarColor = Color(0xffFAFAFA); // 颜色
-  bool _isLogin = false;                // 是否已登录
   bool _isShowDJ = true;               // 是否显示等级
   // Color clipColor = Color()
 
   AnimationController animationcontroller; // 动画控制器
   Animation<double> animation; // 动画
+  var _isAuthentication = false;      // 是否认证
+  var api = Api();
+  var userInfo ;
+  var uid,token;
 
   @override
   void initState() {
@@ -50,6 +67,48 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
         vsync: this, duration: Duration(milliseconds: 300)); // 动画时间
     animation =
         Tween(begin: 0.0, end: 0.0).animate(animationcontroller); // 效果绑定动画时间
+    _getUserIsLogin();
+  }
+
+  _getUserIsLogin() async {
+    var tokens = await PublicStorage.getHistoryList('token');
+    var uuid = await PublicStorage.getHistoryList('uuid');
+    if(tokens.isNotEmpty && uuid.isNotEmpty){
+      setState(() {
+        uid = uuid[0];
+        token = tokens[0];
+      });
+      _getUserInfo(uuid);     // 获取用户信息
+      _getUserIsAuthentication();
+      
+    }
+  }
+
+  _getUserInfo(uuid){
+    api.getData(context, 'getLoginUserInfo', formData: {'uid':uuid[0]}).then((res){
+      var response = json.decode(res.toString());
+      setState(() {
+        userInfo = response['data']['info'];
+      });
+    });
+  }
+
+  _getUserIsAuthentication(){
+    api.getData(context, 'getAuthState', formData: {'uid':uid, 'token':token}).then((val){
+      var res = json.decode(val.toString());
+      if(res['data']['code'] == 1060){
+        Timer(Duration(seconds: 1), () => _alertIsAuthentication());
+      }
+    });
+  }
+
+  _alertIsAuthentication(){
+    if(!_isAuthentication){
+      AlertMsg.alertDialog(context, '你还没有实名认证呦，赶快认证成为主播或专家吧', '立即认证', '先不认证', (){
+        Navigator.pop(context);
+        Navigator.pushNamed(context, '/myAuthentication');
+      });
+    }
   }
 
   // 手饰点击的时候执行
@@ -115,6 +174,11 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     double rpx = MediaQuery.of(context).size.width / 750;
+
+    var userInfoProvider = Provider.of<UserInfoProvider>(context);
+    // print(userInfo);
+    // userInfoProvider.setUserInfo(userInfo);          // 会出现错误问题
+
     return Listener(
         onPointerMove: (result) {
           updatePicHeight(result.position.dy);
@@ -123,7 +187,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
           runAnimate();
           animationcontroller.forward(from: 0); //
         },
-        child: _isLogin ? loginAppBar() : noLoginAppBar());
+        child: userInfoProvider.islogin ? loginAppBar() : noLoginAppBar());
   }
 
   // 未登录状态下
@@ -163,7 +227,11 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
                 borderRadius: BorderRadius.circular(28),
               ),
               elevation: 0,
-              onPressed: () {},
+              onPressed: () {
+                Navigator.pushNamed(context, '/login').then((_) {
+                  _getUserIsLogin();
+                });
+              },
             ),
           ),
           Container(
@@ -173,7 +241,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
               children: <Widget>[
                 Container(
                   child: Text(
-                    '你也可以使用设计账号登录 或 ',
+                    '你也可以使用 ',
                     style: TextStyle(
                         color: Color(0xffA4A4A4),
                         fontSize: ScreenAdapter.size(26)),
@@ -196,27 +264,30 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
               ],
             ),
           ),
-          Container(
-            margin: EdgeInsets.symmetric(vertical: ScreenAdapter.setHeight(20)),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Icon(
-                  IconData(0xe64f, fontFamily: 'myIcon'),
-                  color: Color(0xff00C785),
-                  size: ScreenAdapter.size(70),
-                ),
-                SizedBox(
-                  width: ScreenAdapter.setWidth(20),
-                ),
-                Icon(
-                  IconData(0xe64e, fontFamily: 'myIcon'),
-                  color: Color(0xff30A5DD),
-                  size: ScreenAdapter.size(70),
-                ),
-              ],
-            ),
-          ),
+
+          // QQ登录以及微信登录Widget
+          
+          // Container(
+          //   margin: EdgeInsets.symmetric(vertical: ScreenAdapter.setHeight(20)),
+          //   child: Row(
+          //     mainAxisAlignment: MainAxisAlignment.center,
+          //     children: <Widget>[
+          //       Icon(
+          //         IconData(0xe64f, fontFamily: 'myIcon'),
+          //         color: Color(0xff00C785),
+          //         size: ScreenAdapter.size(70),
+          //       ),
+          //       SizedBox(
+          //         width: ScreenAdapter.setWidth(20),
+          //       ),
+          //       Icon(
+          //         IconData(0xe64e, fontFamily: 'myIcon'),
+          //         color: Color(0xff30A5DD),
+          //         size: ScreenAdapter.size(70),
+          //       ),
+          //     ],
+          //   ),
+          // ),
           Container(
             margin: EdgeInsets.symmetric(vertical: ScreenAdapter.setHeight(20)),
             child: Row(
@@ -258,18 +329,23 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
 
   // 已登录的AppBar
   Widget loginAppBar() {
-    return Stack(
+
+    var userInfoProvider = Provider.of<UserInfoProvider>(context);
+
+    if(userInfo != null){
+      return Stack(
       children: <Widget>[
+        
         CustomScrollView(
           physics: ClampingScrollPhysics(),
           slivers: <Widget>[
             SliverAppBar(
               leading: Text(''),
-              brightness: _isLogin ? Brightness.dark : Brightness.light,
+              brightness: userInfoProvider.islogin ? Brightness.dark : Brightness.light,
               backgroundColor: _customappBarColor,
               pinned: true,
               floating: true,
-              expandedHeight: ScreenAdapter.setHeight(380) + extraPichHeight,
+              expandedHeight: ScreenAdapter.setHeight(300) + extraPichHeight,
               flexibleSpace: FlexibleSpaceBar(
                 background: Stack(
                   children: <Widget>[
@@ -278,67 +354,142 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
                   child: Container(
                       child: Stack(
                         children: <Widget>[
+                      
                       SliverTopBar(
                           extraPicHeight: extraPichHeight,
                           fitType: fitType,
                           customColor: _customappBarColor),
                       Positioned(
-                        top: ScreenAdapter.setHeight(90),
+                        top: ScreenAdapter.setHeight(150),
                         width: ScreenAdapter.setWidth(750),
                         child: Container(
-                          alignment: Alignment.center,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                          padding: EdgeInsets.symmetric(horizontal:ScreenAdapter.setWidth(50)),
+                          child: Row(
                             children: <Widget>[
                               ImageRoud(
-                                  'https://dss0.bdstatic.com/70cFvHSh_Q1YnxGkpoWK1HF6hhy/it/u=3256100974,305075936&fm=26&gp=0.jpg',
+                                  '${userInfo['avatar']}',
                                   70),
-                              Container(
-                                width: ScreenAdapter.setWidth(400),
-                                margin: EdgeInsets.symmetric(
-                                    vertical: ScreenAdapter.setHeight(20)),
-                                child: Text(
-                                  'UziGodV的颜值粉',
-                                  textAlign: TextAlign.center,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: ScreenAdapter.size(30)),
-                                ),
-                              ),
-                              Container(
-                                width: ScreenAdapter.setWidth(400),
-                                margin: EdgeInsets.symmetric(
-                                    vertical: ScreenAdapter.setHeight(5)),
-                                child: Text(
-                                  'RNG电子竞技超话主持人',
-                                  textAlign: TextAlign.center,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                      color: Colors.black38,
-                                      fontSize: ScreenAdapter.size(23)),
-                                ),
-                              ),
-                              Container(
-                                  margin: EdgeInsets.symmetric(
-                                      vertical: ScreenAdapter.setHeight(20)),
-                                  width: ScreenAdapter.setWidth(150),
-                                  height: ScreenAdapter.setHeight(15),
-                                  decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.all(
-                                          Radius.circular(20))),
-                                  padding:
-                                      EdgeInsets.all(ScreenAdapter.setWidth(5)),
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(20),
-                                    child: LinearProgressIndicator(
-                                      value: 0.75,
-                                      backgroundColor: Colors.white,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                          Colors.red),
+                              SizedBox(width: ScreenAdapter.setWidth(20),),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  Container(
+                                    width: ScreenAdapter.setWidth(450),
+                                    child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: <Widget>[
+                                        Container(
+                                          child: Row(
+                                            children: <Widget>[
+                                              Container(
+                                                margin: EdgeInsets.symmetric(
+                                                    vertical: ScreenAdapter.setHeight(20)),
+                                                child: Text(
+                                                  '${userInfo['user_nicename']}',
+                                                  textAlign: TextAlign.center,
+                                                  overflow: TextOverflow.ellipsis,
+                                                  style: TextStyle(
+                                                      color: Colors.white,
+                                                      fontWeight: FontWeight.bold,
+                                                      fontSize: ScreenAdapter.size(40)),
+                                                ),
+                                              ),
+                                              Container(
+                                                  margin: EdgeInsets.symmetric(horizontal:ScreenAdapter.setWidth(10)),
+                                                  padding: EdgeInsets.fromLTRB(ScreenAdapter.setHeight(40), ScreenAdapter.setWidth(5), ScreenAdapter.setWidth(10), ScreenAdapter.setWidth(5)),
+                                                  // width: ScreenAdapter.setWidth(80),
+                                                  alignment: Alignment.centerRight,
+                                                  child: Text('${userInfo['level']}', style: TextStyle(fontSize: ScreenAdapter.size(20), color: Colors.white), textAlign: TextAlign.right,),
+                                                  decoration: BoxDecoration(
+                                                    image: DecorationImage(
+                                                      image: panImage(int.parse(userInfo['level'])),
+                                                      fit: BoxFit.cover
+                                                    ),
+                                                    borderRadius: BorderRadius.circular(5)
+                                                  ),
+                                                )
+                                            ],
+                                          ),
+                                        ),
+                                        Container(
+                                          child: Row(
+                                            children: <Widget>[
+                                              Icon(IconData(0xe657, fontFamily: 'myIcon'), color: Colors.white, size: ScreenAdapter.size(25),),
+                                              Text('已签到', style: TextStyle(color: Colors.white, fontSize: ScreenAdapter.size(25)),)
+                                            ],
+                                          ),
+                                        )
+                                      ],
                                     ),
-                                  ))
+                                  ),
+                                  Row(
+                                    children: <Widget>[
+                                      Container(
+                                        margin: EdgeInsets.only(right:ScreenAdapter.setWidth(20)),
+                                        child: Row(
+                                                children: <Widget>[
+                                                  Container(
+                                                    width: ScreenAdapter.setWidth(40),
+                                                    child: Image.asset('assets/images/hj.png', fit: BoxFit.cover,),
+                                                  ),
+                                                  SizedBox(width: ScreenAdapter.setWidth(10),),
+                                                  Text('火花', style: TextStyle(fontSize: ScreenAdapter.size(25), color: Colors.white)),
+                                                  Text('${userInfo['huohua']}', style: TextStyle(fontSize: ScreenAdapter.size(27), fontWeight: FontWeight.bold, color: Colors.white))
+                                                ],
+                                              ),
+                                      ),
+                                      Container(
+                                        child: Row(
+                                                children: <Widget>[
+                                                  Container(
+                                                    width: ScreenAdapter.setWidth(40),
+                                                    child: Image.asset('assets/images/jb.png', fit: BoxFit.cover,),
+                                                  ),
+                                                  SizedBox(width: ScreenAdapter.setWidth(10),),
+                                                  Text('火虎币', style: TextStyle(fontSize: ScreenAdapter.size(25), color: Colors.white)),
+                                                  Text('${userInfo['huohubi']}', style: TextStyle(fontSize: ScreenAdapter.size(27), fontWeight: FontWeight.bold, color: Colors.white))
+                                                ],
+                                              ),
+                                      )
+                                    ],
+                                  )
+
+                                ],
+                              )
+
+                              // Container(
+                              //   width: ScreenAdapter.setWidth(400),
+                              //   margin: EdgeInsets.symmetric(
+                              //       vertical: ScreenAdapter.setHeight(5)),
+                              //   child: Text(
+                              //     'RNG电子竞技超话主持人',
+                              //     textAlign: TextAlign.center,
+                              //     overflow: TextOverflow.ellipsis,
+                              //     style: TextStyle(
+                              //         color: Colors.black38,
+                              //         fontSize: ScreenAdapter.size(23)),
+                              //   ),
+                              // ),
+                              // Container(
+                              //     margin: EdgeInsets.symmetric(
+                              //         vertical: ScreenAdapter.setHeight(20)),
+                              //     width: ScreenAdapter.setWidth(150),
+                              //     height: ScreenAdapter.setHeight(15),
+                              //     decoration: BoxDecoration(
+                              //         color: Colors.white,
+                              //         borderRadius: BorderRadius.all(
+                              //             Radius.circular(20))),
+                              //     padding:
+                              //         EdgeInsets.all(ScreenAdapter.setWidth(5)),
+                              //     child: ClipRRect(
+                              //       borderRadius: BorderRadius.circular(20),
+                              //       child: LinearProgressIndicator(
+                              //         value: 0.75,
+                              //         backgroundColor: Colors.white,
+                              //         valueColor: AlwaysStoppedAnimation<Color>(
+                              //             Colors.red),
+                              //       ),
+                              //     ))
                             ],
                           ),
                         ),
@@ -366,38 +517,72 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
             // )
           ],
         ),
-        _isShowDJ ? Positioned(
-              top: ScreenAdapter.setHeight(340),
-              width: ScreenAdapter.setWidth(750),
-              height: ScreenAdapter.setHeight(130),
-              child: Container(
-                // width: ScreenAdapter.setWidth(300),
-                height: ScreenAdapter.setHeight(130),
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage('assets/images/banner.png')
-                  )
-                ),
-                alignment: Alignment.center,
-                child: Padding(
-                  padding: EdgeInsets.only(bottom:ScreenAdapter.setHeight(30)),
-                  child:Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Icon(IconData(0xe661, fontFamily: 'myIcon'),size: ScreenAdapter.size(25), color: Color(0xffFF3641),),
-                      SizedBox(width: ScreenAdapter.setWidth(10),),
-                      Text('120', style: TextStyle(fontSize: ScreenAdapter.size(25), color: Color(0xffFF3641), fontWeight: FontWeight.bold))
-                    ],
-                  )
+        // _isShowDJ ? Positioned(
+        //       top: ScreenAdapter.setHeight(340),
+        //       width: ScreenAdapter.setWidth(750),
+        //       height: ScreenAdapter.setHeight(130),
+        //       child: Container(
+        //         // width: ScreenAdapter.setWidth(300),
+        //         height: ScreenAdapter.setHeight(130),
+        //         decoration: BoxDecoration(
+        //           image: DecorationImage(
+        //             image: AssetImage('assets/images/banner.png')
+        //           )
+        //         ),
+        //         alignment: Alignment.center,
+        //         child: Padding(
+        //           padding: EdgeInsets.only(bottom:ScreenAdapter.setHeight(30)),
+        //           child:Row(
+        //             mainAxisAlignment: MainAxisAlignment.center,
+        //             children: <Widget>[
+        //               Icon(IconData(0xe661, fontFamily: 'myIcon'),size: ScreenAdapter.size(25), color: Color(0xffFF3641),),
+        //               SizedBox(width: ScreenAdapter.setWidth(10),),
+        //               Text('120', style: TextStyle(fontSize: ScreenAdapter.size(25), color: Color(0xffFF3641), fontWeight: FontWeight.bold))
+        //             ],
+        //           )
                 
-                )
-              ),
-            )
-            :Text('')
+        //         )
+        //       ),
+        //     )
+        //     :Text(''),
+          Positioned(
+            top: ScreenAdapter.setHeight(50),
+            left: ScreenAdapter.setWidth(20),
+            child: Container(
+                    width: ScreenAdapter.setWidth(750),
+                    // color: Colors.greenAccent,
+                    alignment: Alignment.topLeft,
+                    child: IconButton(
+                      icon:Icon(IconData(0xe654, fontFamily: 'myIcon'), size: ScreenAdapter.size(60)),
+                      color: Colors.white,
+                      onPressed: (){
+                        Navigator.pop(context);
+                      },
+                    ),
+                  ),
+          ),
       ],
     );
+    }else{
+      return Container();
+    }
   }
 }
+
+  // 判断显示等级
+  ImageProvider panImage(n){
+    if(n<11){
+      return AssetImage('assets/images/tag1.png');
+    }else if(10<n && n<31){
+      return AssetImage('assets/images/tag2.png');
+    }else if(30<n && n<51){
+      return AssetImage('assets/images/tag3.png');
+    }else if(50<n && n<71){
+      return AssetImage('assets/images/tag4.png');
+    }else if(70<n && n<101){
+      return AssetImage('assets/images/tag5.png');
+    }
+  }
 
 // 操作界面
 class ActionBar extends StatelessWidget {
@@ -518,41 +703,43 @@ class ActionList extends StatelessWidget {
             Navigator.pushNamed(context, '/myAccount');
           }, 'assets/images/qb.png'),
           Divider(),
-          mylistTile('我的竞猜', () {
+          mylistTile('我的助威', () {
             Navigator.pushNamed(context, '/myGuessingCompetition');
           }, 'assets/images/jc.png'),
           Divider(),
           mylistTile('设置', () {
             Navigator.pushNamed(context, '/settings');
           }, 'assets/images/sz.png'),
-          RaisedButton(
-            child: Text('注册'),
-            onPressed: (){
-              Navigator.pushNamed(context, '/register');
-            },
-          ),
-          RaisedButton(
-            child: Text('找回密码'),
-            onPressed: (){
-              Navigator.pushNamed(context, '/retrieve');
-            },
-          ),
-          RaisedButton(
-            child: Text('登录'),
-            onPressed: (){
-              Navigator.pushNamed(context, '/login');
-            },
-          ),
-          RaisedButton(
-            child: Text('商城'),
-            onPressed: (){
-              Navigator.pushNamed(context, '/shoppingMall');
-            },
-          ),
+          // RaisedButton(
+          //   child: Text('注册'),
+          //   onPressed: (){
+          //     Navigator.pushNamed(context, '/register');
+          //   },
+          // ),
+          // RaisedButton(
+          //   child: Text('找回密码'),
+          //   onPressed: (){
+          //     Navigator.pushNamed(context, '/retrieve');
+          //   },
+          // ),
+          // RaisedButton(
+          //   child: Text('登录'),
+          //   onPressed: (){
+          //     Navigator.pushNamed(context, '/login');
+          //   },
+          // ),
+          // RaisedButton(
+          //   child: Text('商城'),
+          //   onPressed: (){
+          //     Navigator.pushNamed(context, '/shoppingMall');
+          //   },
+          // ),
         ],
       ),
     );
   }
+
+ 
 
   Widget mylistTile(String title, Function fn, String iconImage) {
     return InkWell(
@@ -620,7 +807,7 @@ class _SliverTopBarState extends State<SliverTopBar> {
   @override
   Widget build(BuildContext context) {
     return Container(
-        padding: EdgeInsets.only(top: ScreenAdapter.setHeight(70)),
+        padding: EdgeInsets.only(top: ScreenAdapter.setHeight(50)),
         // color:Theme.of(context).primaryColor,
         decoration: BoxDecoration(
             gradient: const LinearGradient(
@@ -631,53 +818,6 @@ class _SliverTopBarState extends State<SliverTopBar> {
               Color(0xffFF7575),
               Color(0xffFF1414)
             ])),
-        child: Column(
-          children: <Widget>[
-            Container(
-              padding: EdgeInsets.only(left: ScreenAdapter.setWidth(30)),
-              alignment: Alignment.centerLeft,
-              child: Icon(
-                IconData(0xe654, fontFamily: 'myIcon'),
-                size: ScreenAdapter.size(60),
-                color: Colors.white,
-              ),
-            ),
-          ],
-        )
-        // Stack(
-        // children: <Widget>[
-
-        // Positioned(
-        //   top:ScreenAdapter.setHeight(120) + widget.extraPicHeight,
-        //   left: ScreenAdapter.setWidth(30),
-        //   child: InkWell(
-        //     onTap: (){
-
-        //     },
-        //     child: Row(
-        //       children: <Widget>[
-        //         Container(
-        //           width: ScreenAdapter.setWidth(130),
-        //           margin: EdgeInsets.only(right:ScreenAdapter.setWidth(20)),
-        //           child: AspectRatio(
-        //             aspectRatio: 1/1,
-        //             child: ClipRRect(
-        //               borderRadius: BorderRadius.circular(70),
-        //               child: FadeInImage.memoryNetwork(
-        //                 placeholder: kTransparentImage,
-        //                 image: 'http://img.mp.itc.cn/upload/20170724/cf678e09eb384401aa616ba134126357_th.jpg',
-        //                 fit: BoxFit.cover,
-        //               )
-        //           ),
-        //           )
-        //         ),
-
-        //       ],
-        //     ),
-        //   )
-        // )
-        //   ],
-        // ),
         );
   }
 }

@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:firetiger/PluginWidget/ImageRound.dart';
 import 'package:firetiger/PluginWidget/liveSiwper.dart';
+import 'package:firetiger/http/api.dart';
 import 'package:firetiger/utils/ScreenAdapter.dart';
 import 'package:flutter/material.dart';
 
@@ -33,12 +36,35 @@ class _ExpertWidgetState extends State<ExpertWidget> {
     {'img':'https://dss1.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=3196197975,1282739574&fm=111&gp=0.jpg', 'probability':'60%', 'name':'姜峰', 'title':'请离开我今儿来块钱我就看了两块钱我看了今儿看了群文件安会计师大会的借口借口阿斯利康带回家卡拉是肯定啦数据库里的痕迹奥斯卡的健康h', 'vs':'火箭 vs 湖人', 'cc':'19/20赛季欧冠半决赛 2020-5-17 18:00', 'time':'半小时前', 'price':20},
   ];
 
+
+  var api = Api();
+  var bannerArr = [];
+
+  @override
+  void initState() {
+    _getBanner();
+    super.initState();
+  }
+
+  _getBanner(){
+    api.getData(context, 'getBanner', formData: {
+      'cid':'12'
+    }).then((res){
+      var response = json.decode(res.toString());
+      print(response);
+      setState(() {
+        bannerArr = response['data']['info'];
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
       child: ListView(
         children: <Widget>[
-          LiveSiwper(),
+          LiveSiwper(swiperArr:bannerArr),
+
           Container(
             padding: EdgeInsets.symmetric(horizontal:ScreenAdapter.setWidth(40)),
             child: Column(

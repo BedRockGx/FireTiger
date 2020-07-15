@@ -15,9 +15,9 @@ class Api{
   Future getData(context, url, {formData}) async {
     try{
       Response response;
-      if(url != 'getUserCode'){
-        dio.options.headers['Authorization'] = await PublicStorage.getHistoryList('token');
-      }
+      // if(url != 'getUserCode'){
+      //   dio.options.headers['Authorization'] = await PublicStorage.getHistoryList('token');
+      // }
       
       // dio.options.contentType=ContentType.parse("application/x-www-form-urlencoded")    // 设置数据返回格式    
       if(formData == null){
@@ -31,9 +31,9 @@ class Api{
        /*
         如果请求200,，并且返回了新的token，那么就替换掉
        */
-      if(response.statusCode == 200 && response.headers.value('authorization') != null){
-        await PublicStorage.setHistoryList('token', response.headers.value('authorization'));
-      }
+      // if(response.statusCode == 200 && response.headers.value('authorization') != null){
+      //   await PublicStorage.setHistoryList('token', response.headers.value('authorization'));
+      // }
       
       return response;
     }on DioError catch(e){
@@ -61,21 +61,24 @@ class Api{
     try{
       Response response;
       // 登录不需要设置请求头
-      if(url != 'login'){
-        dio.options.headers['Authorization'] = await PublicStorage.getHistoryList('token');
-      }
-      
+      // if(url != 'login'){
+      //   dio.options.headers['Authorization'] = await PublicStorage.getHistoryList('token');
+      // }
+      // dio.options.headers['content-type'] = 'multipart/form-data';
+      // print(dio.options.headers);
       if(formData == null){
         response = await dio.post(path[url]);
       }else{
+        print(path[url]);
+        print(formData);
         response = await dio.post(path[url], data:formData);
       }
       /*
         如果请求200,，并且返回了新的token，那么就替换掉
        */
-      if(response.statusCode == 200 && response.headers.value('authorization') != null){
-        await PublicStorage.setHistoryList('token', response.headers.value('authorization'));
-      }
+      // if(response.statusCode == 200 && response.headers.value('authorization') != null){
+      //   await PublicStorage.setHistoryList('token', response.headers.value('authorization'));
+      // }
 
       return response;
     }on DioError catch(e){

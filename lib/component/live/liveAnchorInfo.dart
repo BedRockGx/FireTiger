@@ -1,15 +1,51 @@
+import 'dart:convert';
+
 import 'package:firetiger/PluginWidget/GreyDivider.dart';
 import 'package:firetiger/PluginWidget/ImageRound.dart';
 import 'package:firetiger/PluginWidget/VideoList.dart';
+import 'package:firetiger/http/api.dart';
+import 'package:firetiger/utils/ScreenAdapter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
 class LiveAnchorInfo extends StatefulWidget {
+  var anchorInfo;
+  var anchorID;
+  var isAttention;
+  LiveAnchorInfo({this.anchorInfo, this.anchorID, this.isAttention});
   @override
-  _LiveAnchorInfoState createState() => _LiveAnchorInfoState();
+  _LiveAnchorInfoState createState() => _LiveAnchorInfoState(anchorInfo, anchorID, isAttention);
 }
 
 class _LiveAnchorInfoState extends State<LiveAnchorInfo> {
+  var anchorInfo;
+  var anchorID;
+  var isAttention;
+  _LiveAnchorInfoState(anchorInfo, anchorID, isAttention);
+
+  var api = Api();
+  List<Map> videoData = [];
+
+  @override
+  void initState() {
+    anchorInfo = widget.anchorInfo;
+    super.initState();
+    _getVideoData();
+  }
+
+  _getVideoData(){
+    api.getData(context, 'getUserLivelist', formData: {'touid':widget.anchorID, 'p':1}).then((val){
+      var res = json.decode(val.toString());
+      setState(() {
+        
+        videoData = (res['data']['info'] as List).cast();
+      });
+      print(videoData);
+    });
+  }
+
+
+
   @override
   Widget build(BuildContext context) {
     double rpx = MediaQuery.of(context).size.width / 750;
@@ -25,7 +61,7 @@ class _LiveAnchorInfoState extends State<LiveAnchorInfo> {
                   children: <Widget>[
                     Container(
                       margin: EdgeInsets.only(right:15 * rpx),
-                      child: ImageRoud('https://dss0.bdstatic.com/70cFuHSh_Q1YnxGkpoWK1HF6hhy/it/u=2722854742,2630717572&fm=111&gp=0.jpg', 50),
+                      child: ImageRoud('${anchorInfo['avatar']}', 50),
                     ),
                     Expanded(
                       flex: 1,
@@ -35,7 +71,10 @@ class _LiveAnchorInfoState extends State<LiveAnchorInfo> {
                           children: <Widget>[
                             Row(
                               children: <Widget>[
-                                Text('磐石BedRock', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30 * rpx),),
+                                Container(
+                                  width: ScreenAdapter.setWidth(350),
+                                  child: Text('${anchorInfo['user_nicename']}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30 * rpx), overflow: TextOverflow.ellipsis,),
+                                ),
                                 SizedBox(width:5 * rpx,),
                                 Container(
                                   margin: EdgeInsets.symmetric(horizontal:10 * rpx),
@@ -66,7 +105,7 @@ class _LiveAnchorInfoState extends State<LiveAnchorInfo> {
                                       )
                                     ),
                                     TextSpan(
-                                      text: '23049'
+                                      text: '${anchorInfo['id']}'
                                     )
                                   ]
                                 )
@@ -96,6 +135,9 @@ class _LiveAnchorInfoState extends State<LiveAnchorInfo> {
                         ),
                       ),
                     ),
+                    isAttention != '0' ? 
+                    Container()
+                    :
                     Container(
                       padding: EdgeInsets.symmetric(horizontal:40 * rpx, vertical:10 * rpx),
                       decoration: BoxDecoration(
@@ -120,7 +162,7 @@ class _LiveAnchorInfoState extends State<LiveAnchorInfo> {
                               child: Text('主播公告：', style: TextStyle(fontSize: 25*rpx),)
                             ),
                             TextSpan(
-                              text:'很骄傲实打实的就卡机按计划奥术杀了肯德基拉就开始弹尽粮绝大师阿斯利康结婚登记卡的很煎熬健康的回家看大',
+                              text:'${anchorInfo['signature']}',
                               style: TextStyle(
                                 fontSize: 25 * rpx,
                                 color: Color(0xffA4A4A4)
@@ -146,7 +188,9 @@ class _LiveAnchorInfoState extends State<LiveAnchorInfo> {
                 margin: EdgeInsets.only(bottom:30 * rpx),
                 child: Text('直播回放', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 35 * rpx),),
               ),
-              VideoList(isUnpublished:false, isLiveAnchor:false)
+              videoData.isEmpty ? Center(child: Text('暂无数据', style: TextStyle(fontSize: 30 * rpx),),)
+              :
+              VideoList(isUnpublished:false, isLiveAnchor:false, videoListData: videoData)
             ],
           ),
         )

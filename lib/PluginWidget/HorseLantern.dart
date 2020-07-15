@@ -115,7 +115,7 @@ class _HorseLanternState extends State<HorseLantern> {
                         ),
                       ),
                       onTap: (){
-                        Navigator.pushNamed(context, '/live');
+                        // Navigator.pushNamed(context, '/live');
                       },
                     ),
                     

@@ -1,4 +1,9 @@
+import 'dart:convert';
+
+import 'package:firetiger/http/api.dart';
+import 'package:firetiger/utils/PublicStorage.dart';
 import 'package:firetiger/utils/ScreenAdapter.dart';
+import 'package:firetiger/utils/Utils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -12,21 +17,56 @@ class MyGuessingCompetition extends StatefulWidget {
 class _MyGuessingCompetitionState extends State<MyGuessingCompetition>  with TickerProviderStateMixin{
 
     TabController _tabController;
+    var startTime;
+    var endTime;
 
     List<String> classData = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
 
     var month;
 
     var _selectMonth = '1';
+    var api = Api();
+    var uid, token;
+    var futureDataBuilder;
+    List<Map> data = [];
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this, initialIndex: 0);
-    _tabController.addListener((){
-      print('监听:${_tabController.index}');
-    });
+
+    startTime = Utils.currentTimeMillis(int.parse(_selectMonth), 1, 0, 0, 0);
+    endTime = Utils.currentTimeMillis(int.parse(_selectMonth), 30, 23, 59, 59);
+    // });
+    
+    _getUserIsLogin();
     month = DateTime.now().month;
+  }
+
+    _getUserIsLogin() async {
+    var tokens = await PublicStorage.getHistoryList('token');
+    var uuid = await PublicStorage.getHistoryList('uuid');
+    print(tokens);
+    if(tokens.isNotEmpty && uuid.isNotEmpty){
+      setState(() {
+        uid = uuid[0];
+        token = tokens[0];
+      });
+      _getData();     // 获取用户信息
+    }else{
+      Navigator.pushReplacementNamed(context, '/login');
+    }
+  }
+
+  _getData(){
+    // print( {'uid':uid, 'token':token, 'startTime':startTime, 'endTime':endTime})
+    api.getData(context, 'getMyGuess', formData: {'uid':uid, 'token':token, 'startTime':startTime, 'endTime':endTime}).then((val){
+      var res = json.decode(val.toString());
+      print(res);
+      setState(() {
+        data =(res['data']['info'] as List).cast();
+      });
+    });
   }
 
   @override
@@ -40,7 +80,7 @@ class _MyGuessingCompetitionState extends State<MyGuessingCompetition>  with Tic
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: Text('我的竞猜', style: TextStyle(color: Colors.black87, fontSize: ScreenAdapter.size(35), fontWeight: FontWeight.bold),),
+        title: Text('我的助威', style: TextStyle(color: Colors.black87, fontSize: ScreenAdapter.size(35), fontWeight: FontWeight.bold),),
         backgroundColor: Color(0xffFAFAFA),
         brightness: Brightness.light,
         elevation: 1,
@@ -71,30 +111,31 @@ class _MyGuessingCompetitionState extends State<MyGuessingCompetition>  with Tic
             onTap:showBottom,
           )
         ],
-        bottom: TabBar(
-          controller: _tabController,
-          indicatorColor:Theme.of(context).primaryColor,
-          labelColor:Color(0xff333333),
-          labelStyle: TextStyle(fontWeight: FontWeight.bold),
-          unselectedLabelColor:Color(0xff333333),
-          unselectedLabelStyle: TextStyle(fontWeight: FontWeight.normal),
-          indicatorSize:TabBarIndicatorSize.label,
-          tabs: <Widget>[
-            Tab(text: '发起记录',),
-            Tab(text: '参与记录',),
-          ],
-          onTap: (index) {
+        // bottom: TabBar(
+        //   controller: _tabController,
+        //   indicatorColor:Theme.of(context).primaryColor,
+        //   labelColor:Color(0xff333333),
+        //   labelStyle: TextStyle(fontWeight: FontWeight.bold),
+        //   unselectedLabelColor:Color(0xff333333),
+        //   unselectedLabelStyle: TextStyle(fontWeight: FontWeight.normal),
+        //   indicatorSize:TabBarIndicatorSize.label,
+        //   tabs: <Widget>[
+        //     Tab(text: '发起记录',),
+        //     Tab(text: '参与记录',),
+        //   ],
+        //   onTap: (index) {
             
-          },
-        ),
+        //   },
+        // ),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: <Widget>[
-          GuessingCompetitionWidget(1),
-          GuessingCompetitionWidget(2),
-        ],
-      ),
+      body: GuessingCompetitionWidget(2, data)
+      // TabBarView(
+      //   controller: _tabController,
+      //   children: <Widget>[
+      //     GuessingCompetitionWidget(1),
+      //     GuessingCompetitionWidget(2),
+      //   ],
+      // ),
     );
   }
 
@@ -134,12 +175,14 @@ class _MyGuessingCompetitionState extends State<MyGuessingCompetition>  with Tic
                     child: Text('确定', style: TextStyle(color: Colors.white, fontSize: ScreenAdapter.size(25)),),
                   ),
                   onTap: (){
-                    
                     // _selectMonth == '' ?  month = classData[0] : month = _selectMonth;
-                    print(_selectMonth);
+                    
                     setState(() {
+                      startTime = Utils.currentTimeMillis(int.parse(_selectMonth), 1, 0, 0, 0);
+                      endTime = Utils.currentTimeMillis(int.parse(_selectMonth), 30, 23, 59, 59);
                       month = _selectMonth;
                     });
+                    _getData();
                     Navigator.pop(context);
                   },
                 )
@@ -153,9 +196,10 @@ class _MyGuessingCompetitionState extends State<MyGuessingCompetition>  with Tic
                   diameterRatio: 1,
                   backgroundColor: Colors.white,
                   onSelectedItemChanged: (index){
-                    print('选中下标:${classData[index]}');
                     setState(() {
                       _selectMonth = classData[index];
+                      startTime = Utils.currentTimeMillis(int.parse(classData[index]), 1, 0, 0, 0);
+                      endTime = Utils.currentTimeMillis(int.parse(classData[index]), 30, 23, 59, 59);
                     });
                   },
                   children: classData.map((item){

@@ -1,34 +1,103 @@
 
+import 'dart:convert';
+
+import 'package:dio/dio.dart';
 import 'package:firetiger/component/videoTab/comment.dart';
+import 'package:firetiger/http/api.dart';
+import 'package:firetiger/utils/PublicStorage.dart';
 import 'package:firetiger/utils/ScreenAdapter.dart';
+import 'package:firetiger/utils/Utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_html/flutter_html.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:like_button/like_button.dart';
 import 'package:share/share.dart';
 
-class CustomSliverHeaderDemo extends StatelessWidget {
+class ConsulationDetails extends StatefulWidget {
+  var tid;
+  ConsulationDetails({@required this.tid});
+  @override
+  _ConsulationDetailsState createState() => _ConsulationDetailsState();
+}
+
+class _ConsulationDetailsState extends State<ConsulationDetails> {
+
+  var _futureBuilderFuture;
+  var data;
+  var _page = 1;
+  var _pagesize = 20;
+  var commentData = [];
+  var post_like;
+
+  
+
+  var api = Api();
+
+  @override
+  void initState() {
+    super.initState();
+    _futureBuilderFuture = getArticlesDetails(); // 获取直播分类
+    _getCommentData();
+  }
+
+  Future getArticlesDetails() async {
+    Response response;
+
+    response = await api.getData(context, 'getArticlesDetails', formData: {'tid':'${widget.tid}'});
+    var v = json.decode(response.toString());
+    print(v['data']['info']);
+    setState(() {
+      post_like = v['data']['info']['article']['post_like'];
+    });
+    print(post_like);
+
+    return v;
+  }
+
+  _getCommentData() {
+    api.getData(context, 'getLiveComments', formData: {'topic':widget.tid, 'page':_page, 'pagesize':_pagesize}).then((val){
+      var v = json.decode(val.toString());
+      setState(() {
+        commentData = v['data']['info'];
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: CustomScrollView(
-        slivers: <Widget>[
-          SliverPersistentHeader(
-            pinned: true,
-            delegate: SliverCustomHeaderDelegate(
-              title: '足球带我奔跑，一停一拉一传，萨拉赫背身做球的梦幻三连',
-              collapsedHeight: 50,
-              expandedHeight: ScreenAdapter.setHeight(400),
-              paddingTop: MediaQuery.of(context).padding.top,
-              coverImgUrl: 'https://img.zcool.cn/community/01c6615d3ae047a8012187f447cfef.jpg@1280w_1l_2o_100sh.jpg'
-            ),
-          ),
-          SliverFillRemaining(
-            child: FilmContent(),
-          )
-        ],
-      ),
+      body: FutureBuilder(
+        future: _futureBuilderFuture,
+        builder: (context, snapshot){
+          if(snapshot.connectionState == ConnectionState.done){
+            // print('');
+            return NestedScrollView(
+              headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+                return <Widget>[
+                      SliverPersistentHeader(
+                        pinned: true,
+                        delegate: SliverCustomHeaderDelegate(
+                          title: '${snapshot.data['data']['info']['article']['post_title']}',
+                          collapsedHeight: 50,
+                          expandedHeight: ScreenAdapter.setHeight(400),
+                          paddingTop: MediaQuery.of(context).padding.top,
+                          coverImgUrl: '${snapshot.data['data']['info']['recents'][0]['thumb']}'
+                        ),
+                      ),
+                ];
+              },
+              body: FilmContent(snapshot.data['data']['info'], commentData, widget.tid, post_like)
+            );
+          }else{
+            return Center(
+                    child: CircularProgressIndicator(),
+                  );
+          }
+        },
+        
+      )
     );
   }
 }
@@ -170,11 +239,38 @@ class SliverCustomHeaderDelegate extends SliverPersistentHeaderDelegate {
 }
 
 class FilmContent extends StatefulWidget {
+  var data;
+  var commentData;
+  var tid;
+  var post_like;
+  FilmContent(this.data, this.commentData, this.tid, this.post_like);
   @override
-  _FilmContentState createState() => _FilmContentState();
+  _FilmContentState createState() => _FilmContentState(this.post_like);
 }
 
 class _FilmContentState extends State<FilmContent> {
+
+  var post_like;
+  _FilmContentState(this.post_like);
+  var api = Api();
+  var uid, token;
+
+  @override
+  void initState() {
+    super.initState();
+    _getHistoryUserInfo();
+  }
+
+  _getHistoryUserInfo() async {
+    var uuid = await PublicStorage.getHistoryList('uuid');
+    var tokens = await PublicStorage.getHistoryList('token');
+    if(uuid.isNotEmpty && tokens.isNotEmpty){
+      setState(() {
+        uid = uuid[0];
+        token = tokens[0];
+      });
+    }
+  }
 
   var data = """
     <div>
@@ -193,6 +289,8 @@ class _FilmContentState extends State<FilmContent> {
 
   TextEditingController _comment = TextEditingController();
 
+  
+
 
   @override
   Widget build(BuildContext context) {
@@ -202,19 +300,18 @@ class _FilmContentState extends State<FilmContent> {
         children: <Widget>[
           Container(
             margin: EdgeInsets.only(top:ScreenAdapter.setHeight(20)),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: ListView(
               children: <Widget>[
                 Container(
-                  child: Text('足球带我奔跑，一停一拉一传，萨拉赫背身做球的梦幻三连', style: TextStyle(fontSize: ScreenAdapter.size(40), fontWeight: FontWeight.bold),),
+                  child: Text('${widget.data['article']['post_title']}', style: TextStyle(fontSize: ScreenAdapter.size(40), fontWeight: FontWeight.bold),),
                 ),
                 Container(
                   margin: EdgeInsets.only(top:ScreenAdapter.setHeight(20)),
-                  child: Text('来源名称 · 30分钟前', style: TextStyle(color: Color(0xffA4A4A4), fontSize: ScreenAdapter.size(25)),),
+                  child: Text('${widget.data['article']['name']} · ${Utils.handleDate(widget.data['article']['post_date'])}', style: TextStyle(color: Color(0xffA4A4A4), fontSize: ScreenAdapter.size(25)),),
                 ),
                 Container(
                   child: Html(
-                    data:data,
+                    data:widget.data['article']['post_content'],
                     // padding: EdgeInsets.all(8.0),
                     defaultTextStyle: TextStyle(fontFamily: 'serif'),
                     linkStyle: const TextStyle(
@@ -248,6 +345,7 @@ class _FilmContentState extends State<FilmContent> {
                       ),
                       child: TextField(
                         controller: _comment,
+                        style: TextStyle(fontSize: ScreenAdapter.size(25)),
                         decoration: InputDecoration(
                           border: InputBorder.none,
                           hintText: '请输入评论',
@@ -270,7 +368,7 @@ class _FilmContentState extends State<FilmContent> {
                             top:0,
                             child: Container(
                               color: Color(0xffF9F9F9),
-                              child: Text('32', style: TextStyle(color: Color(0xffFF3641), fontSize: ScreenAdapter.size(25)),),
+                              child: Text('${widget.commentData.length}', style: TextStyle(color: Color(0xffFF3641), fontSize: ScreenAdapter.size(25)),),
                             ),
                           )
                         ],
@@ -287,25 +385,32 @@ class _FilmContentState extends State<FilmContent> {
                                 likeBuilder: (bool isLiked){
                                     return Icon(IconData(0xe67e, fontFamily: 'myIcon'),size: ScreenAdapter.size(40) ,color: isLiked ? Color(0xffFF3641) : Colors.black,);
                                 },
+                                likeCount: int.parse(post_like),
                                 circleColor:CircleColor(start: Color(0xff00ddff), end: Color(0xffFF3641)),
                                 bubblesColor: BubblesColor(
                                     dotPrimaryColor: Color(0xffFF3641),
                                     dotSecondaryColor: Color(0xffFF3641),
                                 ),
                                 onTap: (bool isLiked) async{
-                                  return !isLiked;
+                                  Response response;
+                                  response = await api.getData(context, 'addArticleLike', formData: {'uid':uid, 'pid':widget.tid});
+                                  var res = json.decode(response.toString());
+                                  Fluttertoast.showToast(msg: res['data']['msg']);
+                                  if(res['data']['code'] == 1){
+                                    return !isLiked;
+                                  }
                                 }
                             )
                           // Icon(IconData(0xe67e, fontFamily: 'myIcon'), size: ScreenAdapter.size(40),),
                         ),
-                        Positioned(
-                          right: 0,
-                          top:15,
-                          child: Container(
-                            color: Color(0xffF9F9F9),
-                            child: Text('189', style: TextStyle(color: Color(0xffFF3641), fontSize: ScreenAdapter.size(25)),),
-                          ),
-                        )
+                        // Positioned(
+                        //   right: 0,
+                        //   top:15,
+                        //   child: Container(
+                        //     color: Color(0xffF9F9F9),
+                        //     child: Text('$post_like', style: TextStyle(color: Color(0xffFF3641), fontSize: ScreenAdapter.size(25)),),
+                        //   ),
+                        // )
                       ],
                     ),
                   ),
@@ -356,22 +461,21 @@ class _FilmContentState extends State<FilmContent> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
                     Container(
-                      child: Text('全部评论(12)', style: TextStyle(fontSize:ScreenAdapter.size(30)),),
+                      child: Text('全部评论(${widget.commentData.length})', style: TextStyle(fontSize:ScreenAdapter.size(30)),),
                     ),
                     InkWell(
                       child: Container(
                         child: Icon(Icons.close, size: ScreenAdapter.size(40), color: Color(0xffA4A4A4),),
                       ),
                       onTap: (){
-                        
-                      
+                        Navigator.pop(context);
                       },
                     )
                   ],
                 )
               ),
               Expanded(
-                child: Comment(1),
+                child: Comment(2, videoId: widget.tid,),
               )
             ],
           )

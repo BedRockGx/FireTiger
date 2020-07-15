@@ -1,6 +1,8 @@
 import 'package:firetiger/PluginWidget/ImageRound.dart';
+import 'package:firetiger/provider/searDataProvider.dart';
 import 'package:firetiger/utils/ScreenAdapter.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:transparent_image/transparent_image.dart';
 
 import '../../../utils/ScreenAdapter.dart';
@@ -26,6 +28,7 @@ class _SearchTabAllState extends State<SearchTabAll> {
 
   @override
   Widget build(BuildContext context) {
+    var searchDataProvider = Provider.of<SearchDataProvider>(context);
     return Container(
       
       padding: EdgeInsets.symmetric(vertical:ScreenAdapter.setHeight(10), horizontal:ScreenAdapter.setWidth(30)),
@@ -46,6 +49,12 @@ class _SearchTabAllState extends State<SearchTabAll> {
               ],
             ),
           ),
+          
+          searchDataProvider.anchorData.length == 0 ? 
+          Center(
+            child: Text('暂无数据', style: TextStyle(fontSize: ScreenAdapter.size(30),),),
+          )
+          :
           Container(
             margin: EdgeInsets.symmetric(vertical:ScreenAdapter.setHeight(20)),
             child: Column(
@@ -128,7 +137,11 @@ class _SearchTabAllState extends State<SearchTabAll> {
               ],
             ),
           ),
-          
+          searchDataProvider.liveData.length == 0 ? 
+          Center(
+            child: Text('暂无数据', style: TextStyle(fontSize: ScreenAdapter.size(30),),),
+          )
+          :
           Wrap(
             spacing: ScreenAdapter.setWidth(40), // 平行距离
             children: <Widget>[
@@ -395,7 +408,11 @@ class _SearchTabAllState extends State<SearchTabAll> {
               ],
             ),
           ),
-          
+          searchDataProvider.videoData.length == 0 ? 
+          Center(
+            child: Text('暂无数据', style: TextStyle(fontSize: ScreenAdapter.size(30),),),
+          )
+          :
           Wrap(
               spacing: ScreenAdapter.setWidth(40), // 平行距离
               children: <Widget>[

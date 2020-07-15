@@ -43,99 +43,216 @@ class _PlayerListState extends State<PlayerList> {
   @override
   Widget build(BuildContext context) {
 
-    var playerSider = Provider.of<MatchBarProvider>(context);
+    var selectProvider = Provider.of<MatchBarProvider>(context);
 
-    return ConstrainedBox(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height
-      ),
-      child:Container(
-        // padding: EdgeInsets.only(bottom:ScreenAdapter.setHeight(400)),
-        child: Row(
-          children: <Widget>[
-            Expanded(
-              flex: 1,
-              child: Container(
-                child:  ListView(
-                  children: siderBarList.map((item){
-                    return InkWell(
-                      child: Container(
-                        padding: EdgeInsets.all(ScreenAdapter.setWidth(40)),
-                        color: playerSider.playerSideBarIndex == item['code'] ? Colors.white : Color(0xffEAEAEA),
-                        alignment: Alignment.centerRight,
-                        child: Text('${item['title']}', style: TextStyle(fontSize: ScreenAdapter.size(25), fontWeight:playerSider.playerSideBarIndex == item['code'] ? FontWeight.bold : FontWeight.normal),),
-                      ),
-                      onTap: (){
-                        playerSider.setPlayerSideBarIndex(item['code']);
-                      },
-                    );
-                  }).toList()
-                ),
-              ),
-            ),
-            Expanded(
-              flex: 3,
-              child: Container(
-                color: Colors.white,
-                child: ListView(
-                  children: siderDataList.map((item){
-                    return Container(
-                      margin: EdgeInsets.symmetric(vertical:ScreenAdapter.setHeight(20)),
+    if(selectProvider.mathData.isEmpty){
+      return Center(
+        child: Text('暂无数据', style: TextStyle(fontSize: ScreenAdapter.size(30)),),
+      );
+    }else{
+      if(selectProvider.homeBarIndex == 1){
+        return ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxHeight: MediaQuery.of(context).size.height
+                    ),
+                    child:Container(
+                      // padding: EdgeInsets.only(bottom:ScreenAdapter.setHeight(400)),
                       child: Row(
                         children: <Widget>[
+                          // Expanded(
+                          //   flex: 1,
+                          //   child: Container(
+                          //     child:  ListView(
+                          //       children: siderBarList.map((item){
+                          //         return InkWell(
+                          //           child: Container(
+                          //             padding: EdgeInsets.all(ScreenAdapter.setWidth(40)),
+                          //             color: playerSider.playerSideBarIndex == item['code'] ? Colors.white : Color(0xffEAEAEA),
+                          //             alignment: Alignment.centerRight,
+                          //             child: Text('${item['title']}', style: TextStyle(fontSize: ScreenAdapter.size(25), fontWeight:playerSider.playerSideBarIndex == item['code'] ? FontWeight.bold : FontWeight.normal),),
+                          //           ),
+                          //           onTap: (){
+                          //             playerSider.setPlayerSideBarIndex(item['code']);
+                          //           },
+                          //         );
+                          //       }).toList()
+                          //     ),
+                          //   ),
+                          // ),
                           Expanded(
-                            flex: 1,
-                            child: Row(
-                              children: <Widget>[
-                                Container(
-                                  child: Text('${item['pm']}', style: TextStyle(fontSize: ScreenAdapter.size(30), fontWeight: FontWeight.bold),),
-                                  margin: EdgeInsets.symmetric(horizontal:ScreenAdapter.setWidth(40)),
-                                ),
-                                Column(
-                                  children: <Widget>[
-                                    Text('${item['nickname']}', style: TextStyle(fontSize: ScreenAdapter.size(30), fontWeight: FontWeight.bold),),
-                                    SizedBox(
-                                      height: ScreenAdapter.setHeight(10),
-                                    ),
-                                    Row(
+                            flex: 3,
+                            child: Container(
+                              color: Colors.white,
+                              child: ListView.builder(
+                                itemBuilder: (BuildContext context, int index){
+                                  return Container(
+                                    margin: EdgeInsets.symmetric(vertical:ScreenAdapter.setHeight(20)),
+                                    child: Row(
                                       children: <Widget>[
-                                        Container(
-                                          margin: EdgeInsets.only(right:ScreenAdapter.setWidth(20)),
-                                          width: ScreenAdapter.setWidth(30),
-                                          child: Image.network('${item['jl']}', fit: BoxFit.cover,),
+                                        Expanded(
+                                          flex: 1,
+                                          child: Row(
+                                            children: <Widget>[
+                                              Container(
+                                                child: Text('${index + 1 }', style: TextStyle(fontSize: ScreenAdapter.size(30), fontWeight: FontWeight.bold),),
+                                                margin: EdgeInsets.symmetric(horizontal:ScreenAdapter.setWidth(40)),
+                                              ),
+                                              Container(
+                                                width: ScreenAdapter.setWidth(250),
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: <Widget>[
+                                                    Text('${selectProvider.mathData[index]['playerNameChs']}',overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: ScreenAdapter.size(30), fontWeight: FontWeight.bold),),
+                                                    SizedBox(
+                                                      height: ScreenAdapter.setHeight(10),
+                                                    ),
+                                                    Row(
+                                                      children: <Widget>[
+                                                        Container(
+                                                          margin: EdgeInsets.only(right:ScreenAdapter.setWidth(20)),
+                                                          width: ScreenAdapter.setWidth(30),
+                                                          child: Image.network('${selectProvider.mathData[index]['logo']}?win007=sell', fit: BoxFit.cover,),
+                                                        ),
+                                                        Text('${selectProvider.mathData[index]['teamNameChs']}', style: TextStyle(fontSize: ScreenAdapter.size(20)),)
+                                                      ],
+                                                    )
+                                                  ],
+                                                ),
+                                              )
+                                            ],
+                                          ),
                                         ),
-                                        Text('${item['name']}', style: TextStyle(fontSize: ScreenAdapter.size(20)),)
+                                        Expanded(
+                                          flex: 1,
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.end,
+                                            children: <Widget>[
+                                              Text('${selectProvider.mathData[index]['goals']}', style: TextStyle(fontSize: ScreenAdapter.size(35), color: Colors.redAccent, fontWeight: FontWeight.bold),),
+                                              
+                                              Container(
+                                                margin: EdgeInsets.symmetric(horizontal:ScreenAdapter.setWidth(60)),
+                                                child: ImageRoud('${selectProvider.mathData[index]['photo']}?win007=sell', 40)
+                                              )
+                                            ],
+                                          ),
+                                        )
                                       ],
-                                    )
-                                  ],
-                                )
-                              ],
-                            ),
-                          ),
-                          Expanded(
-                            flex: 1,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: <Widget>[
-                                Text('${item['fs']}', style: TextStyle(fontSize: ScreenAdapter.size(35), color: Colors.redAccent, fontWeight: FontWeight.bold),),
-                                
-                                Container(
-                                  margin: EdgeInsets.symmetric(horizontal:ScreenAdapter.setWidth(60)),
-                                  child: ImageRoud('${item['img']}', 40)
-                                )
-                              ],
+                                    ),
+                                  );
+                                },
+                                itemCount: selectProvider.mathData.length,
+                              )
+                              
                             ),
                           )
                         ],
                       ),
-                    );
-                  }).toList()
-                ),
-              ),
-            )
-          ],
-        ),
-      )
-    );
+                    )
+                  );
+              
+      }else{
+        return ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxHeight: MediaQuery.of(context).size.height
+                    ),
+                    child:Container(
+                      // padding: EdgeInsets.only(bottom:ScreenAdapter.setHeight(400)),
+                      child: Row(
+                        children: <Widget>[
+                          // Expanded(
+                          //   flex: 1,
+                          //   child: Container(
+                          //     child:  ListView(
+                          //       children: siderBarList.map((item){
+                          //         return InkWell(
+                          //           child: Container(
+                          //             padding: EdgeInsets.all(ScreenAdapter.setWidth(40)),
+                          //             color: playerSider.playerSideBarIndex == item['code'] ? Colors.white : Color(0xffEAEAEA),
+                          //             alignment: Alignment.centerRight,
+                          //             child: Text('${item['title']}', style: TextStyle(fontSize: ScreenAdapter.size(25), fontWeight:playerSider.playerSideBarIndex == item['code'] ? FontWeight.bold : FontWeight.normal),),
+                          //           ),
+                          //           onTap: (){
+                          //             playerSider.setPlayerSideBarIndex(item['code']);
+                          //           },
+                          //         );
+                          //       }).toList()
+                          //     ),
+                          //   ),
+                          // ),
+                          Expanded(
+                            flex: 3,
+                            child: Container(
+                              color: Colors.white,
+                              child: ListView.builder(
+                                itemBuilder: (BuildContext context, int index){
+                                  return Container(
+                                    margin: EdgeInsets.symmetric(vertical:ScreenAdapter.setHeight(20)),
+                                    child: Row(
+                                      children: <Widget>[
+                                        Expanded(
+                                          flex: 1,
+                                          child: Row(
+                                            children: <Widget>[
+                                              Container(
+                                                child: Text('${index + 1 }', style: TextStyle(fontSize: ScreenAdapter.size(30), fontWeight: FontWeight.bold),),
+                                                margin: EdgeInsets.symmetric(horizontal:ScreenAdapter.setWidth(40)),
+                                              ),
+                                              Container(
+                                                width: ScreenAdapter.setWidth(250),
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: <Widget>[
+                                                    Text('${selectProvider.mathData[index]['playerNameChs']}',overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: ScreenAdapter.size(30), fontWeight: FontWeight.bold),),
+                                                    SizedBox(
+                                                      height: ScreenAdapter.setHeight(10),
+                                                    ),
+                                                    Row(
+                                                      children: <Widget>[
+                                                        Container(
+                                                          margin: EdgeInsets.only(right:ScreenAdapter.setWidth(20)),
+                                                          width: ScreenAdapter.setWidth(30),
+                                                          child: Image.network('${selectProvider.mathData[index]['logo']}', fit: BoxFit.cover,),
+                                                        ),
+                                                        Text('${selectProvider.mathData[index]['teamNameChs']}', style: TextStyle(fontSize: ScreenAdapter.size(20)),)
+                                                      ],
+                                                    )
+                                                  ],
+                                                ),
+                                              )
+                                            ],
+                                          ),
+                                        ),
+                                        Expanded(
+                                          flex: 1,
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.end,
+                                            children: <Widget>[
+                                              Text('${selectProvider.mathData[index]['salary']}', style: TextStyle(fontSize: ScreenAdapter.size(35), color: Colors.redAccent, fontWeight: FontWeight.bold),),
+                                              
+                                              Container(
+                                                margin: EdgeInsets.symmetric(horizontal:ScreenAdapter.setWidth(60)),
+                                                child: ImageRoud('${selectProvider.mathData[index]['photo']}', 40)
+                                              )
+                                            ],
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                  );
+                                },
+                                itemCount: selectProvider.mathData.length,
+                              )
+                              
+                            ),
+                          )
+                        ],
+                      ),
+                    )
+                  );
+      }
+        
+    }
+
+    
   }
 }

@@ -2,18 +2,24 @@
 import 'package:firetiger/PluginWidget/ConsulationDetails.dart';
 import 'package:firetiger/PluginWidget/PlayVideo.dart';
 import 'package:firetiger/PluginWidget/videoPage.dart';
+import 'package:firetiger/component/Match/selectBarData/match/matchDetails.dart';
+import 'package:firetiger/component/Match/selectBarData/rank/rank.dart';
 import 'package:firetiger/component/expert/expertHomepage.dart';
 import 'package:firetiger/component/expert/expertRank.dart';
 import 'package:firetiger/component/expert/programmePay.dart';
+import 'package:firetiger/component/live/components/goaltableDetails.dart';
+import 'package:firetiger/component/live/components/integralDetails.dart';
 import 'package:firetiger/component/live/components/liveWebViews.dart';
 import 'package:firetiger/component/live/live.dart';
 import 'package:firetiger/component/liveBroadcast/allAnchorRank.dart';
 import 'package:firetiger/component/search/search.dart';
 import 'package:firetiger/component/userCenter/AnchorRelated.dart';
 import 'package:firetiger/component/userCenter/Pay.dart';
+import 'package:firetiger/component/userCenter/component/anthenticationWidget.dart';
 import 'package:firetiger/component/userCenter/gradeDetails.dart';
 import 'package:firetiger/component/userCenter/modifyUser.dart';
 import 'package:firetiger/component/userCenter/myAccount.dart';
+import 'package:firetiger/component/userCenter/myAuthentication.dart';
 import 'package:firetiger/component/userCenter/myGrade.dart';
 import 'package:firetiger/component/userCenter/myGuessingCompetition.dart';
 import 'package:firetiger/component/userCenter/myMessage.dart';
@@ -21,6 +27,7 @@ import 'package:firetiger/component/userCenter/myVideo.dart';
 import 'package:firetiger/component/userCenter/postVideo.dart';
 import 'package:firetiger/component/userCenter/settings.dart';
 import 'package:firetiger/component/userCenter/userCenterPage.dart';
+import 'package:firetiger/page/ProviderHome.dart';
 import 'package:firetiger/shoppingMall/confirmOrder.dart';
 import 'package:firetiger/shoppingMall/modifyAddress.dart';
 import 'package:firetiger/shoppingMall/shoppingMall.dart';
@@ -37,7 +44,9 @@ import 'package:firetiger/component/user/RetrievePassword.dart';
 
 
 final routers = {
-  '/':(context) => BottomBarPage(),
+  // '/':(context) => BottomBarPage(),
+  '/':(context) => ProviderHome(),
+  // '/bottomBar':(context) => BottomBarPage(),
   '/login':(context) => LoginPage(),
   '/passwordlogin':(context) => PasswordLoginPage(),
   '/register':(context) => RegisterPage(),
@@ -64,11 +73,16 @@ final routers = {
   '/expertRank':(context) => ExpertRank(),
   '/expertHomePage':(context) => ExpertHomePage(),
   '/programmePay':(context) => ProgrammePay(),
-  '/consulationDetails':(context) => CustomSliverHeaderDemo(),
-  '/playVideo':(context) => PlayVideo(),
+  '/consulationDetails':(context, {arguments}) => ConsulationDetails(tid: arguments,),
+  '/playVideo':(context, {arguments}) => PlayVideo(videoId: arguments,),
   '/videoScreen':(context, {arguments}) => VideoScreen(player:arguments),
-  '/live':(context) => LivePage(),
+  '/live':(context, {arguments}) => LivePage(videoId:arguments),
   '/webView':(context, {arguments}) => LiveWebViews(arguments),
+  '/goalTableDetails':(context, {arguments}) => GoalTableDetails(arguments),
+  '/intergralDetails':(context) => IntergralDetails(),
+  '/myAuthentication':(context) => MyAuthentication(),
+  '/anthenTicationWidget':(context, {arguments}) => AnthenTicationWidget(arguments),
+  '/matchDetails':(context, {arguments}) => MatchDetails(arguments)
 };
 
 final onGenerateRoute = (RouteSettings settings){

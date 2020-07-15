@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:firetiger/PluginWidget/Canvas.dart';
+import 'package:firetiger/http/api.dart';
 import 'package:firetiger/utils/Behavior.dart';
 import 'package:firetiger/utils/ScreenAdapter.dart';
 import 'package:firetiger/utils/Utils.dart';
@@ -22,6 +24,7 @@ class _RegisterPageState extends State<RegisterPage> {
   int _countdownTime = 60;
   bool _verification_available = false;
   bool _password_available = false;
+  var api = Api();
 
   @override
   void initState() {
@@ -34,7 +37,7 @@ class _RegisterPageState extends State<RegisterPage> {
     _phoneText.text = '';
     _codeText.text = '';
     _passwordText.text = '';
-    if(_countdownTime != 60){
+    if(_timer != null){
       _timer.cancel();
       _countdownTime = 60;
     }
@@ -152,6 +155,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                 ),
                                 child: TextField(
                                   controller: _phoneText,
+                                  style: TextStyle(fontSize: ScreenAdapter.size(30)),
                                   keyboardType:TextInputType.phone,
                                   inputFormatters: [
                                     WhitelistingTextInputFormatter.digitsOnly
@@ -201,6 +205,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                 ),
                                 child: TextField(
                                   controller: _codeText,
+                                  style: TextStyle(fontSize: ScreenAdapter.size(30)),
                                   keyboardType:TextInputType.phone,
                                   enabled: _verification_available ? true : false,
                                   decoration: InputDecoration(
@@ -225,7 +230,18 @@ class _RegisterPageState extends State<RegisterPage> {
                                 onTap: (){
                                   if(_verification_available){
                                     if(_countdownTime == 60){
-                                      print('请求验证码接口');
+                                      api.getData(context, 'getCode', formData: {'mobile':_phoneText.text}).then((val){
+                                        var response = json.decode(val.toString());
+                                        print(response);
+                                        if(response['data']['code'] == 0){
+                                          Fluttertoast.showToast(msg: '验证码发送成功！请注意查收~');
+                                          if(_countdownTime == 60){
+                                            startCountdownTimer();
+                                          }
+                                        }else{
+                                          Fluttertoast.showToast(msg: response['data']['msg']);
+                                        }
+                                      });
                                     }else{
                                       Fluttertoast.showToast(msg: '请稍后获取验证码~');
                                       return;
@@ -233,10 +249,6 @@ class _RegisterPageState extends State<RegisterPage> {
                                   }else{
                                     Fluttertoast.showToast(msg: '请输入正确的手机号');
                                     return;
-                                  }
-
-                                  if(_countdownTime == 60){
-                                    startCountdownTimer();
                                   }
                                 },
                               )
@@ -262,6 +274,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                 ),
                                 child: TextField(
                                   controller: _passwordText,
+                                  style: TextStyle(fontSize: ScreenAdapter.size(30)),
                                   keyboardType:TextInputType.visiblePassword,
                                   obscureText:true,
                                   inputFormatters: [
@@ -307,7 +320,8 @@ class _RegisterPageState extends State<RegisterPage> {
                       child: RaisedButton(
                         child: Text('立即注册', style: TextStyle(fontSize: ScreenAdapter.size(30)),),
                         textColor: Colors.white,
-                        highlightColor:Theme.of(context).primaryColor,
+                        highlightColor:_verification_available && _codeText.text != '' ? 
+                              Theme.of(context).primaryColor : Color(0xffDFDFDF),
                         color: _verification_available && _password_available && _codeText.text != '' ? 
                               Theme.of(context).primaryColor : Color(0xffDFDFDF),
                         shape: RoundedRectangleBorder(
@@ -316,6 +330,24 @@ class _RegisterPageState extends State<RegisterPage> {
                         elevation: 0,
                         onPressed: () {
                           print(_phoneText.text);
+                          if(_phoneText.text == '' || _codeText.text == '' || _passwordText.text == ''){
+                            Fluttertoast.showToast(msg: '请检查输入内容');
+                            return;
+                          }else if(!_password_available){
+                            Fluttertoast.showToast(msg: '密码必须是数字和字母组合，并且不能少于6位');
+                            return;
+                          }
+                          print({'user_login':_phoneText.text, 'user_pass':_passwordText.text, 'code':_codeText.text});
+                          api.getData(context, 'userRegister', formData: {'user_login':_phoneText.text, 'user_pass':_passwordText.text, 'code':_codeText.text}).then((val){
+                            var res = json.decode(val.toString());
+
+                            Fluttertoast.showToast(msg: res['data']['msg']);
+
+                            Timer(Duration(seconds: 1), (){
+                              Navigator.pop(context);
+                            });
+                            
+                          });
                         },
                       ),
                     ),

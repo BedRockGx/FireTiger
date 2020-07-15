@@ -1,19 +1,29 @@
 // import 'package:firetiger/customFlutter/no_shadow_tab_bar.dart';
+import 'dart:convert';
+
 import 'package:firetiger/component/search/tab/all.dart';
 import 'package:firetiger/component/search/tab/anchor.dart';
 import 'package:firetiger/component/search/tab/match.dart';
 import 'package:firetiger/component/search/tab/video.dart';
+import 'package:firetiger/http/api.dart';
+import 'package:firetiger/provider/searDataProvider.dart';
 import 'package:firetiger/utils/ScreenAdapter.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class SearchTabBar extends StatefulWidget {
+  var data;
+  SearchTabBar({this.data});
   @override
-  _SearchTabBarState createState() => _SearchTabBarState();
+  _SearchTabBarState createState() => _SearchTabBarState(this.data);
 }
 
 class _SearchTabBarState extends State<SearchTabBar> with TickerProviderStateMixin{
 
    TabController _tabController;
+   var data;
+   _SearchTabBarState(this.data);
+   var api = Api();
 
   double _elevation = 0;
   var _index = 0;
@@ -24,6 +34,8 @@ class _SearchTabBarState extends State<SearchTabBar> with TickerProviderStateMix
     _tabController = TabController(length: 4, vsync: this, initialIndex: 0);
   }
 
+
+
   @override
   void dispose() {
     _tabController.dispose();
@@ -32,6 +44,9 @@ class _SearchTabBarState extends State<SearchTabBar> with TickerProviderStateMix
 
   @override
   Widget build(BuildContext context) {
+
+    
+
     return Scaffold(
       body:ListView(
         children: <Widget>[

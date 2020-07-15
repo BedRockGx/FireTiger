@@ -5,11 +5,9 @@ import 'package:transparent_image/transparent_image.dart';
 
 class LiveSiwper extends StatelessWidget {
 
-   List arr = [
-    'http://n.sinaimg.cn/front/200/w640h360/20180425/uBJd-fzqvvsc0562357.jpg',
-    'https://ns-strategy.cdn.bcebos.com/ns-strategy/upload/fc_big_pic/part-00443-4126.jpg',
-    'https://huyaimg.msstatic.com/cdnimage/gamebanner/phpz4v8PF1553828503.png'
-  ];
+  List swiperArr = [];
+
+  LiveSiwper({this.swiperArr});
 
   @override
   Widget build(BuildContext context) {
@@ -18,27 +16,78 @@ class LiveSiwper extends StatelessWidget {
             child: Swiper(
               itemBuilder: (BuildContext context,int index){
                 return   Container(
-                          padding: EdgeInsets.all(ScreenAdapter.setWidth(30)),
+                          margin: EdgeInsets.fromLTRB(ScreenAdapter.setWidth(20),0, ScreenAdapter.setWidth(20), ScreenAdapter.setWidth(20)),
+                          
                           child: Container(
+                            width: ScreenAdapter.setWidth(100),
                             child: AspectRatio(
-                              aspectRatio: 1 / 1,
+                              aspectRatio: 1/1,
                               child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(10),
-                                  child: InkWell(
-                                    child: FadeInImage.memoryNetwork(
+                                borderRadius: BorderRadius.circular(10),
+                                child: InkWell(
+                                  child: FadeInImage.memoryNetwork(
                                       placeholder: kTransparentImage,
-                                      image: arr[index],
-                                      fit: BoxFit.fill,
-                                    ),
-                                    onTap: () async {},
-                                  )
-                                ),
+                                      image: swiperArr[index]['slide_pic'], fit: BoxFit.cover,),
+                                      onTap: ()async {
+                                        
+                                      },
+                                )
+                              ),
                             ),
-                          ));
+                          )
+                        );
               },
-              itemCount: arr.length,
+              itemCount: swiperArr.length,
               autoplay: true,
             ),
           );
   }
 }
+
+
+
+
+
+// class LiveSiwper extends StatelessWidget {
+
+//   final swiperArr;
+//   LiveSiwper(this.swiperArr);
+
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Container(
+//                 child: Swiper(
+//                 itemCount: swiperArr['list'].length,
+//                 itemBuilder: (context, index){
+//                   return Container(
+//                           margin: EdgeInsets.fromLTRB(ScreenAdapter.setWidth(20),0, ScreenAdapter.setWidth(20), ScreenAdapter.setWidth(20)),
+                          
+//                           child: Container(
+//                             width: ScreenAdapter.setWidth(100),
+//                             child: AspectRatio(
+//                               aspectRatio: 1/1,
+//                               child: ClipRRect(
+//                                 borderRadius: BorderRadius.circular(10),
+//                                 child: InkWell(
+//                                   child: FadeInImage.memoryNetwork(
+//                                       placeholder: kTransparentImage,
+//                                       image: swiperArr[index]['slide_pic'], fit: BoxFit.cover,),
+//                                   onTap: ()async {
+                                    
+//                                   },
+//                                 )
+//                               ),
+//                             ),
+//                           )
+//                         );
+//                 },
+//                 autoplay: true,
+//                 pagination: SwiperPagination(margin: EdgeInsets.only(bottom:ScreenAdapter.setHeight(40))),
+//               ),
+//               );
+//   }
+// }
+
+
+

@@ -1,17 +1,26 @@
+import 'dart:convert';
+
 import 'package:firetiger/PluginWidget/ImageRound.dart';
+import 'package:firetiger/http/api.dart';
 import 'package:flutter/material.dart';
 
 class LiveContriButionRank extends StatefulWidget {
+  var anchorID;
+  LiveContriButionRank(this.anchorID);
   @override
-  _LiveContriButionRankState createState() => _LiveContriButionRankState();
+  _LiveContriButionRankState createState() => _LiveContriButionRankState(this.anchorID);
 }
 
 class _LiveContriButionRankState extends State<LiveContriButionRank> {
 
+  var anchorID;
+  _LiveContriButionRankState(this.anchorID);
+
   List<Map> _selectExpandedBarData ;
   int highlight;
 
-  List<Map> _rankData;
+  List<Map> _rankData = [];
+  var api = Api();
 
   @override
   void initState() {
@@ -22,17 +31,25 @@ class _LiveContriButionRankState extends State<LiveContriButionRank> {
       {'title':'总榜', 'code':2},
     ];
 
-    _rankData = [
-      {'pm':1 , 'image':'https://dss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=3873278591,2846033136&fm=26&gp=0.jpg', 'title':'隔壁老王', 'gx':124, },
-      {'pm':2 , 'image':'https://dss0.bdstatic.com/70cFvHSh_Q1YnxGkpoWK1HF6hhy/it/u=1803056350,344909414&fm=111&gp=0.jpg', 'title':'隔壁老王', 'gx':23, },
-      {'pm':3 , 'image':'https://dss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=3118813608,3660597234&fm=26&gp=0.jpg', 'title':'隔壁老王', 'gx':100, },
-      {'pm':4 , 'image':'https://dss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=3873278591,2846033136&fm=26&gp=0.jpg', 'title':'隔壁老王', 'gx':233, },
-      {'pm':5 , 'image':'https://dss0.bdstatic.com/70cFvHSh_Q1YnxGkpoWK1HF6hhy/it/u=1803056350,344909414&fm=111&gp=0.jpg', 'title':'隔壁老王', 'gx':68,},
-      {'pm':6 , 'image':'https://dss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=3118813608,3660597234&fm=26&gp=0.jpg', 'title':'隔壁老王', 'gx':1000,},
-      {'pm':7 , 'image':'https://dss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=3873278591,2846033136&fm=26&gp=0.jpg', 'title':'隔壁老王', 'gx':20, },
-      {'pm':8 , 'image':'https://dss0.bdstatic.com/70cFvHSh_Q1YnxGkpoWK1HF6hhy/it/u=1803056350,344909414&fm=111&gp=0.jpg', 'title':'隔壁老王', 'gx':1, },
-      {'pm':9 , 'image':'https://dss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=3118813608,3660597234&fm=26&gp=0.jpg', 'title':'隔壁老王', 'gx':300, },
-    ];
+    _rankData = [];
+
+    _getData();
+  }
+
+  _getData(){
+    print({'anchorId':anchorID, 'type':highlight, 'num':10});
+    api.getData(context, 'getCoinTop', formData: {'anchorId':anchorID, 'type':highlight, 'num':10}).then((val){
+      var res = json.decode(val.toString());
+    var arr = res['data']['info'];
+    for(var i = 0; i < arr.length; i++){
+      arr[i]['pm'] = i + 1;
+    }
+      if (mounted) {
+        setState(() {
+          _rankData = (arr as List).cast();
+        });
+      }
+    });
   }
 
 
@@ -82,6 +99,7 @@ class _LiveContriButionRankState extends State<LiveContriButionRank> {
                           setState(() {
                             highlight = item['code'];
                           });
+                          _getData();
                           // selectProvider.setBarIndex(item['code']);
                         },
                       ));
@@ -90,6 +108,11 @@ class _LiveContriButionRankState extends State<LiveContriButionRank> {
             ],
           ),
         ),
+        _rankData.isEmpty ? 
+        Center(
+          child: Text('暂无数据~', style: TextStyle(fontSize: 30 *rpx),),
+        )
+        :
         Container(
           padding: EdgeInsets.only(top:40 * rpx),
           child: Column(
@@ -115,14 +138,14 @@ class _LiveContriButionRankState extends State<LiveContriButionRank> {
                             ),
                             Container(
                               margin: EdgeInsets.symmetric(horizontal:20 * rpx),
-                              child: ImageRoud('${item['image']}', 60),
+                              child:  ImageRoud('${item['uinfo']['avatar']}', 60)
                             ),
                             Expanded(
                               flex: 1,
-                              child: Text('${item['title']}', style: TextStyle(fontSize:30 * rpx, fontWeight: FontWeight.bold),),
+                              child: Text('${item['uinfo']['user_nicename']}', style: TextStyle(fontSize:30 * rpx, fontWeight: FontWeight.bold),),
                             ),
                             Container(
-                              child: Text('已贡献${item['gx']}', style: TextStyle(fontSize: 25 * rpx, color: Color(0xffA4A4A4)),),
+                              child: Text('已贡献${item['uinfo']['votestotal']}', style: TextStyle(fontSize: 25 * rpx, color: Color(0xffA4A4A4)),),
                             )
                           ],
                         ),

@@ -1,4 +1,8 @@
+import 'dart:convert';
+
 import 'package:firetiger/PluginWidget/ImageRound.dart';
+import 'package:firetiger/http/api.dart';
+import 'package:firetiger/utils/PublicStorage.dart';
 import 'package:firetiger/utils/ScreenAdapter.dart';
 import 'package:flutter/material.dart';
 
@@ -13,7 +17,49 @@ class _AnchorRelatedState extends State<AnchorRelated> {
   double linerValue = 0.2;
   int showTab = 0;
 
+  var api = Api();
+  var uid, token, userInfo;
+
   List<Map> tabStr =  [{'title':'今天', 'code':0}, {'title':'本周', 'code':1}, {'title':'本月', 'code':2}, {'title':'近三月', 'code':3},];
+
+  @override
+  void initState() {
+    super.initState();
+    _getHistoryUserInfo();
+  }
+
+  _getHistoryUserInfo() async {
+    var uuid = await PublicStorage.getHistoryList('uuid');
+    var tokens = await PublicStorage.getHistoryList('token');
+    if(uuid.isEmpty && tokens.isEmpty){
+      Navigator.pushReplacementNamed(context, '/login');
+      return;
+    }else{
+      setState(() {
+        uid = uuid[0];
+        token = tokens[0];
+      });
+      _getUserInfo();
+      _getData();
+    }
+    
+  }
+
+  _getUserInfo(){
+    api.getData(context, 'getLoginUserInfo', formData: {'uid':uid}).then((res){
+      var response = json.decode(res.toString());
+      setState(() {
+        userInfo = response['data']['info'];
+      });
+    });
+  }
+
+  _getData(){
+    api.getData(context, 'getAncLevel', formData: {'uid':uid, 'token':token}).then((val){
+      var res = json.decode(val.toString());
+      print(res);
+    });
+  }
 
 
   @override
@@ -238,9 +284,12 @@ class _AnchorRelatedState extends State<AnchorRelated> {
   }
 
   Widget userHeader(){
-    return Row(
+    if(userInfo == null){
+      return Container();
+    }else{
+      return Row(
             children: <Widget>[
-              ImageRoud('https://dss3.bdstatic.com/70cFv8Sh_Q1YnxGkpoWK1HF6hhy/it/u=3140403455,2984550794&fm=26&gp=0.jpg', 50),
+              ImageRoud('${userInfo['avatar']}', 50),
               SizedBox(
                 width: ScreenAdapter.setWidth(15),
               ),
@@ -253,16 +302,16 @@ class _AnchorRelatedState extends State<AnchorRelated> {
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: <Widget>[
                         Container(
-                          child: Text('磐石BedRock', style: TextStyle(fontSize: ScreenAdapter.size(30), fontWeight: FontWeight.bold),),
+                          child: Text('${userInfo['user_nicename']}', style: TextStyle(fontSize: ScreenAdapter.size(30), fontWeight: FontWeight.bold),),
                         ),
                         Container(
                           padding: EdgeInsets.fromLTRB(ScreenAdapter.setHeight(40), ScreenAdapter.setWidth(5), ScreenAdapter.setWidth(15), ScreenAdapter.setWidth(5)),
                           // width: ScreenAdapter.setWidth(80),
                           alignment: Alignment.centerRight,
-                          child: Text('92', style: TextStyle(fontSize: ScreenAdapter.size(20), color: Colors.white), textAlign: TextAlign.right,),
+                          child: Text('${userInfo['level']}', style: TextStyle(fontSize: ScreenAdapter.size(20), color: Colors.white), textAlign: TextAlign.right,),
                           decoration: BoxDecoration(
                             image: DecorationImage(
-                              image: panImage(92),
+                              image: panImage(int.parse(userInfo['level'])),
                               fit: BoxFit.cover
                             ),
                             borderRadius: BorderRadius.all(Radius.circular(5))
@@ -286,6 +335,7 @@ class _AnchorRelatedState extends State<AnchorRelated> {
             ],
           );
   }
+}
 
   ImageProvider panImage(n){
     if(n<11){

@@ -1,6 +1,10 @@
 
 
+import 'dart:convert';
+
 import 'package:firetiger/PluginWidget/GreyDivider.dart';
+import 'package:firetiger/http/api.dart';
+import 'package:firetiger/utils/PublicStorage.dart';
 import 'package:firetiger/utils/ScreenAdapter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -20,11 +24,37 @@ class _PayPageState extends State<PayPage> {
   List<Map> payType = [{'title':'微信支付', 'icon':0xe66b, 'color':0Xff09BB07}, {'title':'支付宝支付', 'icon':0xe66c, 'color':0Xff06B4FD}];
 
   TextEditingController _numText = TextEditingController();
+  var api = Api();
+  var uid, token;
 
   @override
   void initState() {
     super.initState();
     _numText.text = '0';
+    _getHistoryData();
+  }
+
+  _getHistoryData() async {
+    var uuid = await PublicStorage.getHistoryList('uuid');
+    var tokens = await PublicStorage.getHistoryList('token');
+    if(uuid.isEmpty && tokens.isEmpty){
+      Navigator.pushReplacementNamed(context, '/login');
+      return;
+    }else{
+      setState(() {
+        uid = uuid[0];
+        token = tokens[0];
+      });
+      _getRecharge();
+    }
+  }
+
+  _getRecharge()  {
+    // api.getData(context, 'getRecharge', formData: {'uid':uuid[0], 'token':token[0]}).then((val){
+    //   var res = json.decode(val.toString());
+
+    //   print(res);
+    // });
   }
 
   @override
@@ -122,12 +152,14 @@ class _PayPageState extends State<PayPage> {
               padding: EdgeInsets.symmetric(vertical:ScreenAdapter.setHeight(20), horizontal: ScreenAdapter.setWidth(40)),
               child: TextField(
                 controller: _numText,
+                style: TextStyle(fontSize: ScreenAdapter.size(30)),
                 keyboardType:TextInputType.phone,
                 inputFormatters: [
                   WhitelistingTextInputFormatter.digitsOnly
                 ],
                 decoration: InputDecoration(
-                  hintText: '请输入数量'
+                  hintText: '请输入数量',
+                  hintStyle: TextStyle(fontSize: ScreenAdapter.size(30)),
                 ),
                 onChanged: (v){
                   print(v);

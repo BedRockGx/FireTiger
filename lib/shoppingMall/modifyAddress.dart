@@ -102,6 +102,7 @@ class _ModifyAddressState extends State<ModifyAddress> {
                                         color: Color(0xffF3F3F3)))),
                             child: TextField(
                               controller: _detailsAddress,
+                              style: TextStyle(fontSize: ScreenAdapter.size(25)),
                               decoration: InputDecoration(
                                   hintText: '详细地址',
                                   hintStyle: TextStyle(
@@ -119,6 +120,7 @@ class _ModifyAddressState extends State<ModifyAddress> {
                                         color: Color(0xffF3F3F3)))),
                             child: TextField(
                               controller: _detailsAddress,
+                              style: TextStyle(fontSize: ScreenAdapter.size(25)),
                               decoration: InputDecoration(
                                   hintText: '收货人姓名',
                                   hintStyle: TextStyle(
@@ -136,6 +138,7 @@ class _ModifyAddressState extends State<ModifyAddress> {
                                         color: Color(0xffF3F3F3)))),
                             child: TextField(
                               controller: _detailsAddress,
+                              style: TextStyle(fontSize: ScreenAdapter.size(25)),
                               decoration: InputDecoration(
                                   hintText: '收货人手机号',
                                   hintStyle: TextStyle(

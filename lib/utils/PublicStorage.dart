@@ -6,6 +6,7 @@ class PublicStorage {
   /*
     1.获取本地存储里面的数据
     2.判断本地存储是否有数据
+    3.判断是不是搜索存储
 
       2.1 如果有数据
         1、读取本地存储的数据
@@ -18,7 +19,6 @@ class PublicStorage {
 
    static setHistoryList(key, value, {isSearch}) async {
     try{
-      print('---------------本地存储数据---------------------');
       // 首先获取一下判断有没有数据
       var searchListData = json.decode(await Storage.getString(key));
 
@@ -31,9 +31,9 @@ class PublicStorage {
       // 本地存储判断
       if(!hasData){
         if(isSearch){
-          searchListData.add(value);
+          searchListData.add(value);        // 搜索存储便增加
         }else{
-          searchListData[0] = value;
+          searchListData[0] = value;        // 普通存储替换
         }
         await Storage.setString(key, json.encode(searchListData));
       }
@@ -62,6 +62,7 @@ class PublicStorage {
      
   }
 
+  // 搜索记录 替换
   static replaceListHistoryData(key, value) async {
 
       // 首先获取

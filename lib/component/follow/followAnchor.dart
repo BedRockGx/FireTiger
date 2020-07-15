@@ -1,8 +1,15 @@
+import 'dart:convert';
+
+import 'package:dio/dio.dart';
 import 'package:firetiger/PluginWidget/GreyDivider.dart';
 import 'package:firetiger/PluginWidget/HomeVideoList.dart';
 import 'package:firetiger/PluginWidget/ImageRound.dart';
+import 'package:firetiger/http/api.dart';
+import 'package:firetiger/provider/UserInfoProvider.dart';
+import 'package:firetiger/utils/PublicStorage.dart';
 import 'package:firetiger/utils/ScreenAdapter.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class FollowAnchor extends StatefulWidget {
   @override
@@ -18,27 +25,106 @@ class _FollowAnchorState extends State<FollowAnchor> {
     {'img':'https://dss0.bdstatic.com/70cFvHSh_Q1YnxGkpoWK1HF6hhy/it/u=443801258,2722780474&fm=111&gp=0.jpg', 'dj':98, 'name':'❤香', 'subname':'对没错，我就要波波(●´З｀●)'},
   ];
 
+  var api = Api();
+  var uid,token;
+  List<Map> notliveIng = [];
+  List<Map> liveIng = [];
+  var bol = false;                    // 防止登录成功后返回到此页面重复调用请求数据接口
+
+  List<Map> liveList = [];
+  var _futureLiveList;
+
+  @override
+  void initState() {
+    super.initState();
+    _futureLiveList = _getHotLiveList();
+    _getHistoryUserInfo();
+  }
+
+  _getHistoryUserInfo() async {
+    var uuid = await PublicStorage.getHistoryList('uuid');
+    var tokens = await PublicStorage.getHistoryList('token');
+    if(uuid.isNotEmpty && tokens.isNotEmpty){
+      setState(() {
+        uid = uuid[0];
+        token = tokens[0];
+      });
+      _getFollowData();
+    }
+  }
+
+
+  Future _getHotLiveList() async {
+    Response response;
+    response = await api.getData(context, 'getRecommend');
+  
+    var v = json.decode(response.toString());
+    
+    setState(() {
+      liveList = (v['data']['info'] as List).cast();
+    });
+
+
+    return v;
+  }
+
+  _getFollowData(){
+    api.getData(context, 'getNewFollow', formData: {'uid':uid, 'page':1}).then((val){
+      var res = json.decode(val.toString());
+      print(res);
+      setState(() {
+        liveIng = (res['data']['info']['liveIng'] as List).cast();
+        notliveIng = (res['data']['info']['notliveIng'] as List).cast();
+        bol = true;
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    var userInfoProvider = Provider.of<UserInfoProvider>(context);
+    
     return Scaffold(
       body: Container(
         child:ListView(
           children: <Widget>[
-            
-            followData(),
-            // noLogin(),
-            // noFollowData(),
-            // recommenWidget()
+            panShow(userInfoProvider)
           ],
         )
       ),
     );
   }
 
+  panShow(userInfoProvider){
+    if(userInfoProvider.islogin){
+      if(userInfoProvider.islogin && !bol){
+        _getHistoryUserInfo();
+      }
+      return Container(
+        child: Column(
+          children: <Widget>[
+            liveIng.isNotEmpty || notliveIng.isNotEmpty ? followData() : noFollowData(),
+            recommenWidget()
+          ],
+        ),
+      );
+    }else{
+      return Container(
+        child: Column(
+          children: <Widget>[
+            noLogin(),
+            recommenWidget()
+          ],
+        ),
+      );
+    }
+  }
+
   // 未登录
   Widget noLogin(){
     return Container(
               color: Colors.white,
+              width: ScreenAdapter.setWidth(750),
               height: ScreenAdapter.setHeight(400),
               padding: EdgeInsets.only(top:ScreenAdapter.setHeight(100)),
               child: Column(
@@ -62,7 +148,9 @@ class _FollowAnchorState extends State<FollowAnchor> {
                       ),
                       elevation: 0,
                       onPressed:(){
-
+                        Navigator.pushNamed(context, '/login').then((_){
+                          _getHistoryUserInfo();
+                        });
                       }
                     ),
                   )
@@ -75,6 +163,7 @@ class _FollowAnchorState extends State<FollowAnchor> {
   Widget noFollowData(){
     return Container(
               color: Colors.white,
+              width: ScreenAdapter.setWidth(750),
               height: ScreenAdapter.setHeight(400),
               padding: EdgeInsets.only(top:ScreenAdapter.setHeight(100)),
               child: Column(
@@ -113,16 +202,74 @@ class _FollowAnchorState extends State<FollowAnchor> {
                             SizedBox(
                               width: ScreenAdapter.setWidth(10),
                             ),
-                            Text('5', style: TextStyle(fontSize: ScreenAdapter.size(35), color: Color(0xffA4A4A4)),)
+                            Text('${liveIng.length}', style: TextStyle(fontSize: ScreenAdapter.size(35), color: Color(0xffA4A4A4)),)
                           ],
                         ),
                       ),
                       SizedBox(
                         height: ScreenAdapter.setHeight(20),
                       ),
-                      HomeVideoList()
+                      // HomeVideoList()
                     ],
                   ),
+                ),
+                Column(
+                  children:liveIng.map((item){
+                    return Container(
+                      padding: EdgeInsets.all(ScreenAdapter.setWidth(30)),
+                      margin: EdgeInsets.only(bottom:ScreenAdapter.setHeight(20)),
+                      decoration: BoxDecoration(
+                        color: Color(0xffF6FAFF),
+                        border: Border.all(width:ScreenAdapter.setWidth(1), color:Color(0xffE7F4FF)),
+                        borderRadius: BorderRadius.circular(5)
+                      ),
+                      child: Row(
+                        children: <Widget>[
+                          Container(
+                            margin: EdgeInsets.only(right:ScreenAdapter.setWidth(20)),
+                            child: ImageRoud('${item['avatar']}', 50),
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Container(
+                                child: Row(
+                                  children: <Widget>[
+                                    Container(
+                                      width: ScreenAdapter.setWidth(300),
+                                      alignment:Alignment.centerLeft, 
+                                      child: Text('${item['signature']}', overflow: TextOverflow.ellipsis, maxLines: 1, style: TextStyle(fontSize: ScreenAdapter.size(30)),),
+                                    ),
+                                    Container(
+                                      margin: EdgeInsets.symmetric(horizontal:ScreenAdapter.setWidth(10)),
+                                      padding: EdgeInsets.fromLTRB(ScreenAdapter.setHeight(50), ScreenAdapter.setWidth(5), ScreenAdapter.setWidth(10), ScreenAdapter.setWidth(5)),
+                                      // width: ScreenAdapter.setWidth(80),
+                                      alignment: Alignment.centerRight,
+                                      child: Text('${item['level_anchor']}', style: TextStyle(fontSize: ScreenAdapter.size(25), color: Colors.white), textAlign: TextAlign.right,),
+                                      decoration: BoxDecoration(
+                                        image: DecorationImage(
+                                          image: panImage(int.parse(item['level_anchor'])),
+                                          fit: BoxFit.cover
+                                        )
+                                      ),
+                                    )
+                                  ],
+                                ),
+                              ),
+                              SizedBox(
+                                height: ScreenAdapter.setHeight(10),
+                              ),
+                              Container(
+                                width: ScreenAdapter.setWidth(450),
+                                alignment: Alignment.centerLeft,
+                                child: Text('${item['signature']}',overflow: TextOverflow.ellipsis, maxLines: 1, style: TextStyle(color: Color(0xffA4A4A4), fontSize: ScreenAdapter.size(25)),),
+                              )
+                            ],
+                          )
+                        ],
+                      ),
+                    );
+                  }).toList()
                 ),
                 GreyDivider(),
                 Container(
@@ -141,7 +288,7 @@ class _FollowAnchorState extends State<FollowAnchor> {
                             SizedBox(
                               width: ScreenAdapter.setWidth(10),
                             ),
-                            Text('5', style: TextStyle(fontSize: ScreenAdapter.size(35), color: Color(0xffA4A4A4)),)
+                            Text('${notliveIng.length}', style: TextStyle(fontSize: ScreenAdapter.size(35), color: Color(0xffA4A4A4)),)
                           ],
                         ),
                       ),
@@ -149,61 +296,61 @@ class _FollowAnchorState extends State<FollowAnchor> {
                         height: ScreenAdapter.setHeight(20),
                       ),
                       Column(
-                        children:data.map((item){
+                        children:notliveIng.map((item){
                           return Container(
-                            padding: EdgeInsets.all(ScreenAdapter.setWidth(30)),
-                            margin: EdgeInsets.only(bottom:ScreenAdapter.setHeight(20)),
-                            decoration: BoxDecoration(
-                              color: Color(0xffF6FAFF),
-                              border: Border.all(width:ScreenAdapter.setWidth(1), color:Color(0xffE7F4FF)),
-                              borderRadius: BorderRadius.circular(5)
-                            ),
-                            child: Row(
-                              children: <Widget>[
-                                Container(
-                                  margin: EdgeInsets.only(right:ScreenAdapter.setWidth(20)),
-                                  child: ImageRoud('${item['img']}', 50),
-                                ),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: <Widget>[
-                                    Container(
-                                      child: Row(
+                                  padding: EdgeInsets.all(ScreenAdapter.setWidth(30)),
+                                  margin: EdgeInsets.only(bottom:ScreenAdapter.setHeight(20)),
+                                  decoration: BoxDecoration(
+                                    color: Color(0xffF6FAFF),
+                                    border: Border.all(width:ScreenAdapter.setWidth(1), color:Color(0xffE7F4FF)),
+                                    borderRadius: BorderRadius.circular(5)
+                                  ),
+                                  child: Row(
+                                    children: <Widget>[
+                                      Container(
+                                        margin: EdgeInsets.only(right:ScreenAdapter.setWidth(20)),
+                                        child: ImageRoud('${item['avatar']}', 50),
+                                      ),
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
                                         children: <Widget>[
                                           Container(
-                                            width: ScreenAdapter.setWidth(300),
-                                            alignment:Alignment.centerLeft, 
-                                            child: Text('${item['name']}', overflow: TextOverflow.ellipsis, maxLines: 1, style: TextStyle(fontSize: ScreenAdapter.size(30)),),
+                                            child: Row(
+                                              children: <Widget>[
+                                                Container(
+                                                  width: ScreenAdapter.setWidth(300),
+                                                  alignment:Alignment.centerLeft, 
+                                                  child: Text('${item['signature']}', overflow: TextOverflow.ellipsis, maxLines: 1, style: TextStyle(fontSize: ScreenAdapter.size(30)),),
+                                                ),
+                                                Container(
+                                                  margin: EdgeInsets.symmetric(horizontal:ScreenAdapter.setWidth(10)),
+                                                  padding: EdgeInsets.fromLTRB(ScreenAdapter.setHeight(50), ScreenAdapter.setWidth(5), ScreenAdapter.setWidth(10), ScreenAdapter.setWidth(5)),
+                                                  // width: ScreenAdapter.setWidth(80),
+                                                  alignment: Alignment.centerRight,
+                                                  child: Text('${item['level_anchor']}', style: TextStyle(fontSize: ScreenAdapter.size(25), color: Colors.white), textAlign: TextAlign.right,),
+                                                  decoration: BoxDecoration(
+                                                    image: DecorationImage(
+                                                      image: panImage(int.parse(item['level_anchor'])),
+                                                      fit: BoxFit.cover
+                                                    )
+                                                  ),
+                                                )
+                                              ],
+                                            ),
+                                          ),
+                                          SizedBox(
+                                            height: ScreenAdapter.setHeight(10),
                                           ),
                                           Container(
-                                            margin: EdgeInsets.symmetric(horizontal:ScreenAdapter.setWidth(10)),
-                                            padding: EdgeInsets.fromLTRB(ScreenAdapter.setHeight(50), ScreenAdapter.setWidth(5), ScreenAdapter.setWidth(10), ScreenAdapter.setWidth(5)),
-                                            // width: ScreenAdapter.setWidth(80),
-                                            alignment: Alignment.centerRight,
-                                            child: Text('${item['dj']}', style: TextStyle(fontSize: ScreenAdapter.size(25), color: Colors.white), textAlign: TextAlign.right,),
-                                            decoration: BoxDecoration(
-                                              image: DecorationImage(
-                                                image: panImage(item['dj']),
-                                                fit: BoxFit.cover
-                                              )
-                                            ),
+                                            width: ScreenAdapter.setWidth(450),
+                                            alignment: Alignment.centerLeft,
+                                            child: Text('${item['signature']}',overflow: TextOverflow.ellipsis, maxLines: 1, style: TextStyle(color: Color(0xffA4A4A4), fontSize: ScreenAdapter.size(25)),),
                                           )
                                         ],
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      height: ScreenAdapter.setHeight(10),
-                                    ),
-                                    Container(
-                                      width: ScreenAdapter.setWidth(450),
-                                      alignment: Alignment.centerLeft,
-                                      child: Text('${item['subname']}',overflow: TextOverflow.ellipsis, maxLines: 1, style: TextStyle(color: Color(0xffA4A4A4), fontSize: ScreenAdapter.size(25)),),
-                                    )
-                                  ],
-                                )
-                              ],
-                            ),
-                          );
+                                      )
+                                    ],
+                                  ),
+                                );
                         }).toList()
                       )
                     ],
@@ -215,29 +362,46 @@ class _FollowAnchorState extends State<FollowAnchor> {
 
   // 推荐
   Widget recommenWidget(){
-    return Container(
-              padding: EdgeInsets.all(ScreenAdapter.setWidth(40)),
-              child: Column(
-                children: <Widget>[
-                  Container(
-                    child: Row(
-                      children: <Widget>[
-                        Container(
-                          width: ScreenAdapter.setWidth(50),
-                          margin: EdgeInsets.only(right:ScreenAdapter.setHeight(10)),
-                          child: Image.asset('assets/images/live.png', fit: BoxFit.cover,),
-                        ),
-                        Text('热门推荐', style: TextStyle(fontSize: ScreenAdapter.size(35), fontWeight: FontWeight.bold),)
-                      ],
-                    ),
-                  ),
-                  SizedBox(
-                    height: ScreenAdapter.setHeight(20),
-                  ),
-                  HomeVideoList()
-                ],
-              ),
-            );
+    return FutureBuilder(
+            future: _futureLiveList,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.done) {
+                if(snapshot.data['data']['info'].length != 0){
+                  return Container(
+                          padding: EdgeInsets.all(ScreenAdapter.setWidth(40)),
+                          child: Column(
+                            children: <Widget>[
+                              Container(
+                                child: Row(
+                                  children: <Widget>[
+                                    Container(
+                                      width: ScreenAdapter.setWidth(50),
+                                      margin: EdgeInsets.only(right:ScreenAdapter.setHeight(10)),
+                                      child: Image.asset('assets/images/live.png', fit: BoxFit.cover,),
+                                    ),
+                                    Text('热门推荐', style: TextStyle(fontSize: ScreenAdapter.size(35), fontWeight: FontWeight.bold),)
+                                  ],
+                                ),
+                              ),
+                              SizedBox(
+                                height: ScreenAdapter.setHeight(20),
+                              ),
+                              HomeVideoList(videoData:liveList)
+                            ],
+                          ),
+                        );
+                }else{
+                  return Container();
+                }
+                
+              }else{
+                return Center(
+                        child: CircularProgressIndicator(),
+                      );
+              }
+          }
+        );
+    
   }
 
   // 判断显示等级

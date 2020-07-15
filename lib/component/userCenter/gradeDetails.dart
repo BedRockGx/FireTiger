@@ -1,3 +1,7 @@
+import 'dart:convert';
+
+import 'package:firetiger/http/api.dart';
+import 'package:firetiger/utils/PublicStorage.dart';
 import 'package:firetiger/utils/ScreenAdapter.dart';
 import 'package:flutter/material.dart';
 
@@ -7,6 +11,32 @@ class GradeDetails extends StatefulWidget {
 }
 
 class _GradeDetailsState extends State<GradeDetails> {
+
+  var api = Api();
+  var data;
+  List<Map> order;
+
+  @override
+  void initState() {
+    super.initState();
+    _getData();
+  }
+
+  _getData() async {
+    var uuid = await PublicStorage.getHistoryList('uuid');
+    var token = await PublicStorage.getHistoryList('token');
+    api.getData(context, 'getUserHostGrade', formData: {'uid':uuid[0], 'token':token[0], 'page':1, 'pagesize':10}).then((val){
+      var res = json.decode(val.toString());
+     print(res['data']['info']['task']);
+      setState(() {
+        data = res['data']['info']['user_info'];
+        order = (res['data']['info']['task'] as List).cast();
+      });
+      print(data);
+      print(order);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -41,7 +71,7 @@ class _GradeDetailsState extends State<GradeDetails> {
           color: Color(0xff333333),
           child: ListView(
             children: <Widget>[
-              GradeRegion()
+              GradeRegion(data)
             ],
           ),
       )),
@@ -51,6 +81,9 @@ class _GradeDetailsState extends State<GradeDetails> {
 
   // 等级信息区域
 class GradeRegion extends StatelessWidget {
+
+  var data;
+  GradeRegion(this.data);
 
   var itemWidth = (ScreenAdapter.getScreenWidth() - 60) / 2; // 每一个网格的宽度
   
@@ -91,7 +124,7 @@ class GradeRegion extends StatelessWidget {
               children: <Widget>[
                 Expanded(
                   flex: 1,
-                  child: Text('Lv 98', textAlign: TextAlign.left, style: TextStyle(fontSize: ScreenAdapter.size(40), fontWeight: FontWeight.bold, color: Colors.white,)),
+                  child: Text('Lv 99', textAlign: TextAlign.left, style: TextStyle(fontSize: ScreenAdapter.size(40), fontWeight: FontWeight.bold, color: Colors.white,)),
                 ),
                 Expanded(
                   flex: 1,
@@ -157,7 +190,8 @@ class GradeRegion extends StatelessWidget {
                                       Container(
                                         child: Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: <Widget>[
+                                          children: 
+                                          <Widget>[
                                             Row(
                                               children: <Widget>[
                                                 Text('单场有效直播时长达100分钟', style: TextStyle(fontSize: ScreenAdapter.size(30)),),

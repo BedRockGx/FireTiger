@@ -1,7 +1,9 @@
 import 'package:firetiger/PluginWidget/ImageRound.dart';
 import 'package:firetiger/component/expert/expert.dart';
+import 'package:firetiger/provider/UserInfoProvider.dart';
 import 'package:firetiger/utils/ScreenAdapter.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class Expert extends StatefulWidget {
   @override
@@ -9,8 +11,15 @@ class Expert extends StatefulWidget {
 }
 
 class _ExpertState extends State<Expert> {
+
+  var _userInfo;
+
   @override
   Widget build(BuildContext context) {
+    var userInfoProvider = Provider.of<UserInfoProvider>(context);
+    setState(() {
+      _userInfo = userInfoProvider.userInfo;
+    });
     return Scaffold(
       appBar: AppBar(
         // ImageRoud('https://dss0.bdstatic.com/70cFuHSh_Q1YnxGkpoWK1HF6hhy/it/u=3374416169,262924133&fm=111&gp=0.jpg',50),
@@ -19,11 +28,12 @@ class _ExpertState extends State<Expert> {
         title: Row(
           children: <Widget>[
             Container(
-              // width: ScreenAdapter.setWidth(100),
               child: IconButton(
-                  icon: Container(
-                    // padding: EdgeInsets.only(left:ScreenAdapter.setWidth(30)),
-                    child:ImageRoud('https://dss0.bdstatic.com/70cFvHSh_Q1YnxGkpoWK1HF6hhy/it/u=3256100974,305075936&fm=26&gp=0.jpg', 100)
+                  icon: _userInfo.isEmpty ? 
+                  Icon(IconData(0xe684, fontFamily: 'myIcon'), color: Color(0xffA4A4A4),)
+                  :
+                  Container(
+                    child:ImageRoud('${_userInfo['avatar']}', 100)
                   ),
                 onPressed: (){
                   Navigator.pushNamed(context, '/userCenter');

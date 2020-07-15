@@ -73,7 +73,8 @@ class _ElectroniccompetitionState extends State<Electroniccompetition> with Tick
       body: TabBarView(
         controller: _tabController,
         children: <Widget>[
-          BarDataMatch(data),
+          // BarDataMatch(data),
+          Center(child: Text('1'),),
           Center(child: Text('2'),),
           Center(child: Text('3'),),
           Center(child: Text('4'),),

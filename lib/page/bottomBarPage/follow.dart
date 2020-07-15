@@ -1,5 +1,8 @@
+import 'package:dio/dio.dart';
 import 'package:firetiger/component/follow/followAnchor.dart';
 import 'package:firetiger/component/follow/followExpert.dart';
+import 'package:firetiger/http/api.dart';
+import 'package:firetiger/utils/PublicStorage.dart';
 import 'package:firetiger/utils/ScreenAdapter.dart';
 import 'package:flutter/material.dart';
 
@@ -11,11 +14,32 @@ class Follow extends StatefulWidget {
 class _FollowState extends State<Follow> with TickerProviderStateMixin{
 
   TabController _tabController;
+  var futureVideoList;
+  var uid;
+  var api = Api();
 
     @override
   void initState() {
     _tabController = TabController(length: 2, vsync: this, initialIndex: 0);
     super.initState();
+    _getHistoryUserInfo();
+  }
+
+  _getHistoryUserInfo() async {
+    var uuid = await PublicStorage.getHistoryList('uuid');
+    if(uuid.isEmpty){
+      // Navigator.pushReplacementNamed(context, '/login');
+    }else{
+      setState(() {
+        uid = uuid[0];
+      });
+      futureVideoList = _getFollowLive();
+    }
+  }
+
+  Future _getFollowLive() async {
+    Response response;
+    response = await api.getData(context, 'getNewFollow');
   }
 
   @override

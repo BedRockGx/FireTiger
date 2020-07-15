@@ -1,8 +1,12 @@
 
 
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:dio/dio.dart';
 import 'package:firetiger/PluginWidget/GreyDivider.dart';
+import 'package:firetiger/http/api.dart';
+import 'package:firetiger/utils/PublicStorage.dart';
 import 'package:firetiger/utils/ScreenAdapter.dart';
 import 'package:firetiger/utils/Utils.dart';
 import 'package:flutter/cupertino.dart';
@@ -25,6 +29,7 @@ class _PostVideoState extends State<PostVideo> {
   var _videoCoverUrl = false;
   final FijkPlayer player = FijkPlayer();          // 播放器
   bool _isClickBtn = false;
+  var api = Api();
 
   List<String> classData = ['高尔夫', '网球', '足球', '篮球', '电竞'];
 
@@ -107,6 +112,16 @@ class _PostVideoState extends State<PostVideo> {
                     player.reset();
                     var videoUrl = await Utils.getVideo();
                     print('数据返回');
+                    print(videoUrl.path);
+                    
+                    FormData formData = new FormData.fromMap({
+                      'file':await MultipartFile.fromFile(videoUrl.path),
+                    });
+                    api.postData(context, 'uploadFile', formData: formData).then((val){
+                      var res = json.decode(val.toString());
+                      print('返回：$res');
+                    });
+
                     await player.setDataSource(videoUrl.path, autoPlay: false, showCover:true);
                     setState(() {
                       _videoCoverUrl = true;
@@ -123,6 +138,7 @@ class _PostVideoState extends State<PostVideo> {
                     Expanded(
                       flex: 1,
                       child: TextField(
+                        style: TextStyle(fontSize: ScreenAdapter.size(30)),
                         controller: _titleController,
                         decoration: InputDecoration(
                           hintText: '请输入标题',
@@ -176,10 +192,12 @@ class _PostVideoState extends State<PostVideo> {
         children: <Widget>[
           TextField(
             controller: _detailsController,
+            style: TextStyle(fontSize: ScreenAdapter.size(30)),
             maxLength: 140,
             maxLines: 5,
             decoration: InputDecoration(
               hintText: '请输入视频介绍',
+              hintStyle: TextStyle(fontSize: ScreenAdapter.size(30)),
               border: InputBorder.none
             ),
             onChanged: (v){
@@ -205,8 +223,12 @@ class _PostVideoState extends State<PostVideo> {
                 borderRadius: BorderRadius.circular(28),
               ),
               elevation: 0,
-              onPressed: () {
-                
+              onPressed: () async {
+                var uuid = await PublicStorage.getHistoryList('uuid');
+                var token = await PublicStorage.getHistoryList('token');
+                api.postData(context, 'setVideo', formData: {'uid':uuid[0], 'token':token[0], 'title':_titleController.text, }).then((val){
+                  
+                });
               },
             ),
           )

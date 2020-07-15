@@ -146,7 +146,7 @@ class _TableDataState extends State<TableData> {
                               InkWell(
                                 child: Icon(Icons.chevron_right, size: 40 * rpx, color: Color(0xffCACACA),),
                                 onTap: (){
-                                  
+                                  Navigator.pushNamed(context, '/goalTableDetails');
                                 },
                               )
                             ],
@@ -182,7 +182,7 @@ class _TableDataState extends State<TableData> {
                               InkWell(
                                 child: Icon(Icons.chevron_right, size: 40 * rpx, color: Color(0xffCACACA),),
                                 onTap: (){
-                                  
+                                  Navigator.pushNamed(context, '/goalTableDetails');
                                 },
                               )
                             ],
@@ -325,16 +325,21 @@ class _TableDataState extends State<TableData> {
                     ),
                   ],
                 ),
-                Container(
-                  width: double.infinity,
-                  alignment: Alignment.center,
-                  padding: EdgeInsets.symmetric(vertical:30 * rpx),
-                  decoration: BoxDecoration(
-                    border: Border(
-                                bottom: BorderSide(width: 1 * rpx, color: Color(0xffEBEBEB))
-                              )
+                InkWell(
+                  child: Container(
+                    width: double.infinity,
+                    alignment: Alignment.center,
+                    padding: EdgeInsets.symmetric(vertical:30 * rpx),
+                    decoration: BoxDecoration(
+                      border: Border(
+                                  bottom: BorderSide(width: 1 * rpx, color: Color(0xffEBEBEB))
+                                )
+                    ),
+                    child: Text('查看更多', style: TextStyle(color: Color(0xffA4A4A4), fontSize:  20 *rpx),),
                   ),
-                  child: Text('查看更多', style: TextStyle(color: Color(0xffA4A4A4), fontSize:  20 *rpx),),
+                  onTap: (){
+                    Navigator.pushNamed(context, '/intergralDetails');
+                  },
                 )
               ],
             ),

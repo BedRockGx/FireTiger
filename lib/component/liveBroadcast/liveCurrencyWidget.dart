@@ -1,22 +1,84 @@
 
 
+import 'dart:convert';
+
+import 'package:dio/dio.dart';
 import 'package:firetiger/PluginWidget/HomeVideoList.dart';
 import 'package:firetiger/PluginWidget/ImageRound.dart';
 import 'package:firetiger/PluginWidget/imageDecoration.dart';
 import 'package:firetiger/PluginWidget/liveSiwper.dart';
+import 'package:firetiger/http/api.dart';
+import 'package:firetiger/provider/bottomBarProvider.dart';
 import 'package:firetiger/utils/ScreenAdapter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_swiper/flutter_swiper.dart';
+import 'package:provider/provider.dart';
 import 'package:transparent_image/transparent_image.dart';
 
 class LiveCurrencyWidget extends StatefulWidget {
+  // var arguments;
+  // LiveCurrencyWidget(this.arguments);
   @override
   _LiveCurrencyWidgetState createState() => _LiveCurrencyWidgetState();
 }
 
 class _LiveCurrencyWidgetState extends State<LiveCurrencyWidget> {
 
- 
+  var api = Api();
+  var bannerArr = [];
+  List<Map> rankData = [];
+  List<Map> liveList = [];
+  var _futureLiveList;
+
+  @override
+  void initState() {
+    super.initState();
+    _futureLiveList = _getHotLiveList();
+    // _getHotLiveList();
+    _getBanner();         // 获取轮播图
+    _getRank();
+  }
+
+  _getBanner(){
+    api.getData(context, 'getBanner', formData: {
+      'cid':'15'
+    }).then((res){
+      var response = json.decode(res.toString());
+      setState(() {
+        bannerArr = response['data']['info'];
+      });
+    });
+  }
+
+  _getRank(){
+    api.getData(context, 'getRank', formData: {'type':2}).then((res){
+      var response = json.decode(res.toString());
+      var arr = response['data']['info'];
+      var newArr = arr.take(3).toList();
+      // 写入排名
+      for(var i = 0; i < newArr.length; i++){
+        newArr[i]['pm'] = i + 1;
+      }
+      setState(() {
+        rankData = (newArr as List).cast();
+      });
+    });
+  }
+
+  Future _getHotLiveList() async {
+    Response response;
+    response = await api.getData(context, 'getRecommend');
+    var v = json.decode(response.toString());
+    
+    setState(() {
+      liveList = (v['data']['info'] as List).cast();
+    });
+
+
+    return v;
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -24,27 +86,45 @@ class _LiveCurrencyWidgetState extends State<LiveCurrencyWidget> {
       body: ListView(
         children: <Widget>[
 
-          LiveSiwper(),
+          bannerArr.length > 0 ? LiveSiwper(swiperArr: bannerArr,) : Container(),
           
           classWidget(),
 
-          Container(
-            margin: EdgeInsets.symmetric(horizontal:ScreenAdapter.setWidth(40),),
-            padding: EdgeInsets.symmetric( vertical: ScreenAdapter.setHeight(30)),
-            decoration: BoxDecoration(
-              border: Border(bottom: BorderSide(width: ScreenAdapter.setWidth(1), color: Color(0xffEBEBEB)))
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Container(
-                  margin: EdgeInsets.only(bottom:ScreenAdapter.setHeight(20)),
-                  child: Text('热门直播', style: TextStyle(fontWeight: FontWeight.bold, fontSize: ScreenAdapter.size(35)),),
-                ),
-                HomeVideoList()
-              ],
-            ),
-          ),
+          FutureBuilder(
+            future: _futureLiveList,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.done) {
+                if(snapshot.data['data']['info'].length != 0){
+                  return Container(
+                        margin: EdgeInsets.symmetric(horizontal:ScreenAdapter.setWidth(40),),
+                        padding: EdgeInsets.symmetric( vertical: ScreenAdapter.setHeight(30)),
+                        decoration: BoxDecoration(
+                          border: Border(bottom: BorderSide(width: ScreenAdapter.setWidth(1), color: Color(0xffEBEBEB)))
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Container(
+                              margin: EdgeInsets.only(bottom:ScreenAdapter.setHeight(20)),
+                              child: Text('热门直播', style: TextStyle(fontWeight: FontWeight.bold, fontSize: ScreenAdapter.size(35)),),
+                            ),
+                            HomeVideoList(videoData:liveList)
+                          ],
+                        ),
+                      );
+                }else{
+                  return Container();
+                }
+                
+              }else{
+                return Center(
+                        child: CircularProgressIndicator(),
+                      );
+              }
+          }
+        ),
+
+          
 
           anchorRank(),
 
@@ -61,7 +141,7 @@ class _LiveCurrencyWidgetState extends State<LiveCurrencyWidget> {
                   margin: EdgeInsets.only(bottom:ScreenAdapter.setHeight(20)),
                   child: Text('精彩推荐', style: TextStyle(fontWeight: FontWeight.bold, fontSize: ScreenAdapter.size(35)),),
                 ),
-                HomeVideoList()
+                HomeVideoList(videoData:liveList)
               ],
             ),
           ),
@@ -72,6 +152,9 @@ class _LiveCurrencyWidgetState extends State<LiveCurrencyWidget> {
 
   // 类型选项
   Widget classWidget(){
+    
+    var bottomBarProvider = Provider.of<BottomBarProvider>(context);
+
     return Container(
             padding: EdgeInsets.all(ScreenAdapter.setWidth(20)),
             child: Row(
@@ -91,7 +174,9 @@ class _LiveCurrencyWidgetState extends State<LiveCurrencyWidget> {
                       ],
                     ),
                     onTap: (){
-
+                      // 修改tab
+                      bottomBarProvider.setCurrentIndex(1);
+                      bottomBarProvider.setMathTabIndex(0);         
                     },
                   )
                 ),
@@ -109,7 +194,9 @@ class _LiveCurrencyWidgetState extends State<LiveCurrencyWidget> {
                       ],
                     ),
                     onTap: (){
-
+                       // 修改Bttom/tab
+                      bottomBarProvider.setCurrentIndex(1);
+                      bottomBarProvider.setMathTabIndex(1);
                     },
                   )
                 ),
@@ -190,20 +277,12 @@ class _LiveCurrencyWidgetState extends State<LiveCurrencyWidget> {
                 
                 Container(
                   child: Row(
-                    children: <Widget>[
-                      Expanded(
+                    children:rankData.map((item){
+                      return Expanded(
                         flex: 1,
-                        child: ImageDecoration({'image':'https://dss1.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=3196197975,1282739574&fm=111&gp=0.jpg', 'borderWidth':5.0,  'title':'师爷大大按实际单价暗红色的', 'subTitle':'20年球迷阿里大师的好几款h', 'pm':1})
-                      ),
-                      Expanded(
-                        flex: 1,
-                        child: ImageDecoration({'image':'https://dss0.bdstatic.com/70cFvHSh_Q1YnxGkpoWK1HF6hhy/it/u=3256100974,305075936&fm=26&gp=0.jpg', 'borderWidth':5.0, 'title':'你是谁啊', 'subTitle':'20年球迷', 'pm':2})
-                      ),
-                      Expanded(
-                        flex: 1,
-                        child: ImageDecoration({'image':'https://dss0.bdstatic.com/70cFvHSh_Q1YnxGkpoWK1HF6hhy/it/u=443801258,2722780474&fm=111&gp=0.jpg', 'borderWidth':5.0, 'title':'尿尿的日常生活', 'subTitle':'20年球迷', 'pm':3})
-                      ),
-                    ],
+                        child: ImageDecoration({'image':'${item['avatar']}', 'borderWidth':5.0,  'title':'${item['user_nicename']}', 'subTitle':'${item['signature']}', 'pm':item['pm']})
+                      );
+                    }).toList()
                   ),
                 )
               ],

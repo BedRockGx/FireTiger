@@ -3,11 +3,11 @@ import 'package:event_bus/event_bus.dart';
 // Bus初始化
 EventBus eventBus = EventBus();
 
-class ModifyUi{
-  int str;
+class RankType{
+  String type;
 
 	// 全局事件
-  ModifyUi(int str){
-    this.str = str;
+  RankType(String str){
+    this.type = str;
   }
 }

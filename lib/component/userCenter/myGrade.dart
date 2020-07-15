@@ -1,5 +1,12 @@
+import 'dart:convert';
+
+import 'package:firetiger/http/api.dart';
+import 'package:firetiger/provider/bottomBarProvider.dart';
+import 'package:firetiger/utils/PublicStorage.dart';
 import 'package:firetiger/utils/ScreenAdapter.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:provider/provider.dart';
 
 class MyGrade extends StatefulWidget {
   @override
@@ -7,8 +14,52 @@ class MyGrade extends StatefulWidget {
 }
 
 class _MyGradeState extends State<MyGrade> {
+
+  var api = Api();
+  var data;
+  List<Map> topUp = [];
+  List<Map> task = [];
+  var uid, token;
+
+  @override
+  void initState() {
+    super.initState();
+    _getHistoryData();
+  }
+
+  _getHistoryData() async {
+    var uuid = await PublicStorage.getHistoryList('uuid');
+    var tokens = await PublicStorage.getHistoryList('token');
+    if(uuid.isEmpty && tokens.isEmpty){
+      Navigator.pushReplacementNamed(context, '/login');
+      return;
+    }else{
+      setState(() {
+        uid = uuid[0];
+        token = tokens[0];
+      });
+      _getData();
+    }
+  }
+
+  _getData() async {
+    
+    api.getData(context, 'getMyLevel', formData: {'uid':uid, 'token':token}).then((val){
+      var res = json.decode(val.toString());
+      print(res);
+      setState(() {
+        data = res['data']['info'];
+        task = (res['data']['info']['task'] as List).cast();
+        topUp = (res['data']['info']['topUp'] as List).cast();
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+
+    var bottomBarProvider = Provider.of<BottomBarProvider>(context);
+
     return Scaffold(
       appBar: AppBar(
         title: Text('我的等级', style: TextStyle(color: Colors.white),),
@@ -33,7 +84,7 @@ class _MyGradeState extends State<MyGrade> {
           color: Color(0xff333333),
           child:ListView(
             children: <Widget>[
-              GradeRegion(),
+              data != null ? GradeRegion(data) : Container(),
               Container(
                 margin: EdgeInsets.only(top:ScreenAdapter.setHeight(60)),
                 child: Column(
@@ -84,122 +135,59 @@ class _MyGradeState extends State<MyGrade> {
                           ),
 
                           Container(
-                            margin: EdgeInsets.only(bottom:ScreenAdapter.setHeight(40)),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: <Widget>[
-                                Container(
+                            child: Column(
+                              children: task.map((item){
+                                return Container(
+                                  margin: EdgeInsets.only(bottom:ScreenAdapter.setHeight(40)),
                                   child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: <Widget>[
-                                      Text('每日签到', style: TextStyle(fontSize: ScreenAdapter.size(28)),),
-                                      SizedBox(width: ScreenAdapter.setWidth(5),),
-                                      Icon(IconData(0xe669, fontFamily: 'myIcon'), color: Colors.red, size: ScreenAdapter.size(20),),
-                                      Text('100',  style: TextStyle(fontSize: ScreenAdapter.size(28), color: Colors.red),),
+                                      Container(
+                                        child: Row(
+                                          children: <Widget>[
+                                            Text('${item['name']}', style: TextStyle(fontSize: ScreenAdapter.size(28)),),
+                                            SizedBox(width: ScreenAdapter.setWidth(5),),
+                                            Icon(IconData(0xe669, fontFamily: 'myIcon'), color: Colors.red, size: ScreenAdapter.size(20),),
+                                            Text('${item['reward']}',  style: TextStyle(fontSize: ScreenAdapter.size(28), color: Colors.red),),
+                                            SizedBox(width: ScreenAdapter.setWidth(5),),
+                                            item['huohubi'] == '0' ?   Container() : Icon(IconData(0xe64d, fontFamily: 'myIcon'), color: Color(0xffFFB839), size: ScreenAdapter.size(20),),
+                                            SizedBox(width: ScreenAdapter.setWidth(5),),
+                                            item['huohubi'] == '0' ? Container() : Text('${item['huohubi']}',  style: TextStyle(fontSize: ScreenAdapter.size(28), color: Color(0xffFFB839)),),
+                                          ],
+                                        ),
+                                      ),
+                                      item['btnName'] != null ? 
+
+                                      item['isFinished'] == '0' ?
+                                      raisedButton('${panBtnText(item)}', (){
+                                        switch (item['btnName']) {
+                                          case '签到':
+                                            print('调用签到接口');
+                                            break;
+                                          case '观看':
+                                            Navigator.pop(context);
+                                            Navigator.pop(context);
+                                            break;
+                                          case '绑定':
+                                            Navigator.pushNamed(context, '/modifyInfo', arguments: {'title':'绑定手机号', 'code':4});
+                                            break;
+                                          case '分享':
+                                            Navigator.pop(context);
+                                            Navigator.pop(context);
+                                            bottomBarProvider.setCurrentIndex(2);
+                                            break;
+                                          default:
+                                            Fluttertoast.showToast(msg: '后台未配置');
+                                        }
+                                      })
+                                      :
+                                      yiButton('已${item['btnName']}')
+
+                                      : Container()
                                     ],
                                   ),
-                                ),
-                                raisedButton('去签到', (){
-
-                                })
-                              ],
-                            ),
-                          ),
-
-                          Container(
-                            margin: EdgeInsets.only(bottom:ScreenAdapter.setHeight(40)),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: <Widget>[
-                                Container(
-                                  child: Row(
-                                    children: <Widget>[
-                                      Text('每日观看1小时', style: TextStyle(fontSize: ScreenAdapter.size(28)),),
-                                      SizedBox(width: ScreenAdapter.setWidth(5),),
-                                      Icon(IconData(0xe669, fontFamily: 'myIcon'), color: Colors.red, size: ScreenAdapter.size(20),),
-                                      Text('100',  style: TextStyle(fontSize: ScreenAdapter.size(28), color: Colors.red),),
-                                      SizedBox(width: ScreenAdapter.setWidth(5),),
-                                      Icon(IconData(0xe64d, fontFamily: 'myIcon'), color: Color(0xffFFB839), size: ScreenAdapter.size(20),),
-                                      SizedBox(width: ScreenAdapter.setWidth(5),),
-                                      Text('500',  style: TextStyle(fontSize: ScreenAdapter.size(28), color: Color(0xffFFB839)),),
-                                    ],
-                                  ),
-                                ),
-                                raisedButton('去观看', (){
-                                  
-                                })
-                              ],
-                            ),
-                          ),
-
-                          Container(
-                            margin: EdgeInsets.only(bottom:ScreenAdapter.setHeight(40)),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: <Widget>[
-                                Container(
-                                  child: Row(
-                                    children: <Widget>[
-                                      Text('绑定手机', style: TextStyle(fontSize: ScreenAdapter.size(28)),),
-                                      SizedBox(width: ScreenAdapter.setWidth(5),),
-                                      Icon(IconData(0xe669, fontFamily: 'myIcon'), color: Colors.red, size: ScreenAdapter.size(20),),
-                                      Text('200',  style: TextStyle(fontSize: ScreenAdapter.size(28), color: Colors.red),),
-                                      SizedBox(width: ScreenAdapter.setWidth(5),),
-                                      Icon(IconData(0xe64d, fontFamily: 'myIcon'), color: Color(0xffFFB839), size: ScreenAdapter.size(20),),
-                                      SizedBox(width: ScreenAdapter.setWidth(5),),
-                                      Text('100',  style: TextStyle(fontSize: ScreenAdapter.size(28), color: Color(0xffFFB839)),),
-                                    ],
-                                  ),
-                                ),
-                                raisedButton('去绑定', (){
-                                  
-                                })
-                              ],
-                            ),
-                          ),
-
-                          Container(
-                            margin: EdgeInsets.only(bottom:ScreenAdapter.setHeight(40)),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: <Widget>[
-                                Container(
-                                  child: Row(
-                                    children: <Widget>[
-                                      Text('下载APP', style: TextStyle(fontSize: ScreenAdapter.size(28)),),
-                                      SizedBox(width: ScreenAdapter.setWidth(5),),
-                                      Icon(IconData(0xe669, fontFamily: 'myIcon'), color: Color(0xffA4A4A4), size: ScreenAdapter.size(20),),
-                                      Text('100',  style: TextStyle(fontSize: ScreenAdapter.size(28), color: Color(0xffA4A4A4)),),
-                                      SizedBox(width: ScreenAdapter.setWidth(5),),
-                                      Icon(IconData(0xe64d, fontFamily: 'myIcon'), color: Color(0xffA4A4A4), size: ScreenAdapter.size(20),),
-                                      SizedBox(width: ScreenAdapter.setWidth(5),),
-                                      Text('1000',  style: TextStyle(fontSize: ScreenAdapter.size(28), color: Color(0xffA4A4A4)),),
-                                    ],
-                                  ),
-                                ),
-                                yiButton()
-                              ],
-                            ),
-                          ),
-
-                          Container(
-                            margin: EdgeInsets.only(bottom:ScreenAdapter.setHeight(40)),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: <Widget>[
-                                Container(
-                                  child: Row(
-                                    children: <Widget>[
-                                      Text('分享直播间5次', style: TextStyle(fontSize: ScreenAdapter.size(28)),),
-                                      SizedBox(width: ScreenAdapter.setWidth(5),),
-                                      Icon(IconData(0xe669, fontFamily: 'myIcon'), color: Colors.red, size: ScreenAdapter.size(20),),
-                                      Text('200',  style: TextStyle(fontSize: ScreenAdapter.size(28), color: Colors.red)),
-                                    ],
-                                  ),
-                                ),
-                                raisedButton('去分享', (){
-                                  
-                                })
-                              ],
+                                );
+                              }).toList()
                             ),
                           ),
                         
@@ -224,85 +212,46 @@ class _MyGradeState extends State<MyGrade> {
                           ),
 
                           Container(
-                            margin: EdgeInsets.only(bottom:ScreenAdapter.setHeight(40)),
-                            child: Row(
-                              children: <Widget>[
-                                Expanded(
-                                  flex: 1,
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: <Widget>[
-                                      Text('充值火花', style: TextStyle(fontSize: ScreenAdapter.size(30)),),
-                                      Row(
-                                        children: <Widget>[
-                                          Text('充值1元得 ', style: TextStyle(fontSize: ScreenAdapter.size(20), color: Color(0xffA4A4A4)),),
-                                          SizedBox(width: ScreenAdapter.setWidth(5),),
-                                          Icon(IconData(0xe669, fontFamily: 'myIcon'), color: Colors.red, size: ScreenAdapter.size(20),),
-                                          Text(' 1经验', style: TextStyle(fontSize: ScreenAdapter.size(20), color: Color(0xffA4A4A4)),),
-                                        ],
-                                      )
-                                    ],
-                                  ),
-                                ),
-                                raisedButton('去充值', (){
-
-                                })
-                              ],
+                            child: Column(
+                              children: topUp.map((item){
+                                return Container(
+                                        margin: EdgeInsets.only(bottom:ScreenAdapter.setHeight(40)),
+                                        child: Row(
+                                          children: <Widget>[
+                                            Expanded(
+                                              flex: 1,
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: <Widget>[
+                                                  Text('${item['name']}', style: TextStyle(fontSize: ScreenAdapter.size(30)),),
+                                                  Row(
+                                                    children: <Widget>[
+                                                      Text('${item['desc']} ', style: TextStyle(fontSize: ScreenAdapter.size(20), color: Color(0xffA4A4A4)),),
+                                                      // SizedBox(width: ScreenAdapter.setWidth(5),),
+                                                      // Icon(IconData(0xe669, fontFamily: 'myIcon'), color: Colors.red, size: ScreenAdapter.size(20),),
+                                                      // Text(' 1经验', style: TextStyle(fontSize: ScreenAdapter.size(20), color: Color(0xffA4A4A4)),),
+                                                    ],
+                                                  )
+                                                ],
+                                              ),
+                                            ),
+                                            item['btnName'] != null ? raisedButton('${item['btnName']}', (){
+                                              switch (item['btnName']) {
+                                                case '充值':
+                                                  Navigator.pushNamed(context, '/pay');
+                                                  break;
+                                                default:
+                                                  Fluttertoast.showToast(msg: '后台未配置');
+                                              }
+                                            }):Container()
+                                          ],
+                                        ),
+                                      );
+                              }).toList(),
                             ),
                           ),
 
-                          Container(
-                            margin: EdgeInsets.only(bottom:ScreenAdapter.setHeight(40)),
-                            child: Row(
-                              children: <Widget>[
-                                Expanded(
-                                  flex: 1,
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: <Widget>[
-                                      Text('赠送礼物', style: TextStyle(fontSize: ScreenAdapter.size(30)),),
-                                      Row(
-                                        children: <Widget>[
-                                          Text('充值1元得 ', style: TextStyle(fontSize: ScreenAdapter.size(20), color: Color(0xffA4A4A4)),),
-                                          SizedBox(width: ScreenAdapter.setWidth(5),),
-                                          Icon(IconData(0xe669, fontFamily: 'myIcon'), color: Colors.red, size: ScreenAdapter.size(20),),
-                                          Text(' 1经验', style: TextStyle(fontSize: ScreenAdapter.size(20), color: Color(0xffA4A4A4)),),
-                                        ],
-                                      )
-                                    ],
-                                  ),
-                                ),
-                                raisedButton('赠送', (){
-
-                                })
-                              ],
-                            ),
-                          ),
-
-                          Container(
-                            margin: EdgeInsets.only(bottom:ScreenAdapter.setHeight(40)),
-                            child: Row(
-                              children: <Widget>[
-                                Expanded(
-                                  flex: 1,
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: <Widget>[
-                                      Text('收礼物', style: TextStyle(fontSize: ScreenAdapter.size(30)),),
-                                      Row(
-                                        children: <Widget>[
-                                          Text('收到的礼物获得对应价值的 ', style: TextStyle(fontSize: ScreenAdapter.size(20), color: Color(0xffA4A4A4)),),
-                                          SizedBox(width: ScreenAdapter.setWidth(5),),
-                                          Icon(IconData(0xe669, fontFamily: 'myIcon'), color: Colors.red, size: ScreenAdapter.size(20),),
-                                          Text(' 经验', style: TextStyle(fontSize: ScreenAdapter.size(20), color: Color(0xffA4A4A4)),),
-                                        ],
-                                      )
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                          
                         ],
                       ),
                     ),
@@ -316,6 +265,14 @@ class _MyGradeState extends State<MyGrade> {
         ),
       ),
     );
+  }
+
+  panBtnText(item){
+      if(item['btnName'] == '分享'){
+        return '${item['SharedCount']} / 5';
+      }else{
+        return '${item['btnName'] }';
+      }
   }
 
   // 操作按钮
@@ -337,7 +294,7 @@ class _MyGradeState extends State<MyGrade> {
   }
 
   // 已经操作过
-  Widget yiButton(){
+  Widget yiButton(title){
     return Container(
             padding: EdgeInsets.symmetric(horizontal:ScreenAdapter.setWidth(25), vertical: ScreenAdapter.setHeight(10)),
             decoration: BoxDecoration(
@@ -348,7 +305,7 @@ class _MyGradeState extends State<MyGrade> {
               children: <Widget>[
                 Icon(IconData(0xe657, fontFamily: 'myIcon'), color: Color(0xffFF3641),  size: ScreenAdapter.size(30),),
                 SizedBox(width: ScreenAdapter.setWidth(10),),
-                Text('已下载', style: TextStyle(color: Color(0xffFF3641), fontSize: ScreenAdapter.size(25)),)
+                Text('$title', style: TextStyle(color: Color(0xffFF3641), fontSize: ScreenAdapter.size(25)),)
               ],
             ),
           );
@@ -359,6 +316,8 @@ class _MyGradeState extends State<MyGrade> {
 
 // 等级信息区域
 class GradeRegion extends StatelessWidget {
+  var data;
+  GradeRegion(this.data);
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -376,9 +335,9 @@ class GradeRegion extends StatelessWidget {
           ),
           Container(
             margin: EdgeInsets.symmetric(vertical:ScreenAdapter.setHeight(20)),
-            child: Text('9262655435', style: TextStyle(fontSize: ScreenAdapter.size(60), color: Colors.white),),
+            child: Text('${data['level']['experience']}', style: TextStyle(fontSize: ScreenAdapter.size(60), color: Colors.white),),
           ),
-          LienrGrade(),
+          LienrGrade(data),
           Container(
             padding: EdgeInsets.symmetric(horizontal:ScreenAdapter.setWidth(30)),
             child: Row(
@@ -392,7 +351,7 @@ class GradeRegion extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: <Widget>[
-                      Text('+9800 ', textAlign: TextAlign.end, style: TextStyle(color: Color(0xff666666), fontSize: ScreenAdapter.size(20)),),
+                      Text('+${data['level']['lastCha']} ', textAlign: TextAlign.end, style: TextStyle(color: Color(0xff666666), fontSize: ScreenAdapter.size(20)),),
                       SizedBox(width: ScreenAdapter.setWidth(5),),
                       Icon(IconData(0xe669, fontFamily: 'myIcon'), color: Color(0xff666666), size: ScreenAdapter.size(20),),
                     ],
@@ -407,7 +366,7 @@ class GradeRegion extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: <Widget>[
-                      Text('还需9238 ', textAlign: TextAlign.end, style: TextStyle(color: Colors.white, fontSize: ScreenAdapter.size(20)),),
+                      Text('还需${data['level']['cha']} ', textAlign: TextAlign.end, style: TextStyle(color: Colors.white, fontSize: ScreenAdapter.size(20)),),
                       SizedBox(width: ScreenAdapter.setWidth(5),),
                       Icon(IconData(0xe669, fontFamily: 'myIcon'), color: Colors.red, size: ScreenAdapter.size(20),),
                     ],
@@ -427,15 +386,15 @@ class GradeRegion extends StatelessWidget {
               children: <Widget>[
                 Expanded(
                   flex: 1,
-                  child: Text('98', textAlign: TextAlign.left, style: TextStyle(fontSize: ScreenAdapter.size(40), color: Colors.white,)),
+                  child: Text('${int.parse(data['level']['level']) - 1}', textAlign: TextAlign.left, style: TextStyle(fontSize: ScreenAdapter.size(40), color: Colors.white,)),
                 ),
                 Expanded(
                   flex: 1,
-                  child: Text('99', textAlign: TextAlign.center, style: TextStyle(fontSize: ScreenAdapter.size(40), color: Colors.red,)),
+                  child: Text('${data['level']['level']}', textAlign: TextAlign.center, style: TextStyle(fontSize: ScreenAdapter.size(40), color: Colors.red,)),
                 ),
                 Expanded(
                   flex: 1,
-                  child: Text('100', textAlign: TextAlign.right, style: TextStyle(fontSize: ScreenAdapter.size(40), color: Colors.white,)),
+                  child: Text('${int.parse(data['level']['level']) + 1}', textAlign: TextAlign.right, style: TextStyle(fontSize: ScreenAdapter.size(40), color: Colors.white,)),
                 ),
               ],
             ),
@@ -449,8 +408,13 @@ class GradeRegion extends StatelessWidget {
 
 // 等级进度条
 class LienrGrade extends StatelessWidget {
+  var data;
+  LienrGrade(this.data);
+  double linearNum = 0;
   @override
   Widget build(BuildContext context) {
+    var count = int.parse(data['level']['experience']) + data['level']['cha'];
+    linearNum = int.parse(data['level']['experience']) / count;
     return Container(
             child: Row(
               children: <Widget>[
@@ -506,7 +470,7 @@ class LienrGrade extends StatelessWidget {
                   height: ScreenAdapter.setHeight(5),
                   color: Colors.red,
                   child: LinearProgressIndicator(
-                        value: 0.5,
+                        value: linearNum,
                         backgroundColor:Color(0xff484848),
                         valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).primaryColor),
                       ),

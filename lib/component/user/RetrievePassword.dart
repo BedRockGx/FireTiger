@@ -198,6 +198,7 @@ class _RetrievePageState extends State<RetrievePage> {
                                     // maxWidth: 200
                                   ),
                                   child: TextField(
+                                    style: TextStyle(fontSize: ScreenAdapter.size(30)),
                                     decoration: InputDecoration(
                                       contentPadding: const EdgeInsets.symmetric(
                                           vertical: 4.0),
@@ -256,6 +257,7 @@ class _RetrievePageState extends State<RetrievePage> {
                                   // maxWidth: 200
                                 ),
                                 child: TextField(
+                                  style: TextStyle(fontSize: ScreenAdapter.size(30)),
                                   decoration: InputDecoration(
                                     contentPadding: const EdgeInsets.symmetric(
                                         vertical: 4.0),
@@ -300,6 +302,7 @@ class _RetrievePageState extends State<RetrievePage> {
                                   // maxWidth: 200
                                 ),
                                 child: TextField(
+                                  style: TextStyle(fontSize: ScreenAdapter.size(30)),
                                   decoration: InputDecoration(
                                     contentPadding: const EdgeInsets.symmetric(
                                         vertical: 4.0),

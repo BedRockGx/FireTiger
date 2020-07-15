@@ -1,5 +1,4 @@
 import 'package:fijkplayer/fijkplayer.dart';
-import 'package:firetiger/Bus/videoUi.dart';
 import 'package:firetiger/customFlutter/customLiveVideo.dart';
 import 'package:firetiger/utils/ScreenAdapter.dart';
 import 'package:flutter/material.dart';

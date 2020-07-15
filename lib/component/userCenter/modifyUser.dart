@@ -1,5 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
 
+import 'package:dio/dio.dart';
+import 'package:firetiger/http/api.dart';
+import 'package:firetiger/utils/PublicStorage.dart';
 import 'package:firetiger/utils/ScreenAdapter.dart';
 import 'package:firetiger/utils/Utils.dart';
 import 'package:flutter/material.dart';
@@ -30,6 +34,11 @@ class _ModifyUserInfoState extends State<ModifyUserInfo> {
   Timer _timer;
   int _countdownTime = 60;
 
+  var uid;
+  var token;
+
+  var api = Api();
+
   @override
   void initState() {
     super.initState();
@@ -40,6 +49,16 @@ class _ModifyUserInfoState extends State<ModifyUserInfo> {
     _codeText = TextEditingController();
     _emailText = TextEditingController();
     _passwordText = TextEditingController();
+    _getHistoryUserInfo();
+  }
+
+  _getHistoryUserInfo() async {
+    var uuid = await PublicStorage.getHistoryList('uuid');
+    var tokens = await PublicStorage.getHistoryList('token');
+    setState(() {
+      uid = uuid[0];
+      token = tokens[0];
+    });
   }
 
   @override
@@ -161,8 +180,9 @@ class _ModifyUserInfoState extends State<ModifyUserInfo> {
             Container(
               child: TextField(
                 controller: _nameText,
+                style: TextStyle(fontSize: ScreenAdapter.size(30)),
                 decoration: InputDecoration(
-                  hintText: '请输入新的地址',
+                  hintText: '请输入新的用户名',
                   hintStyle: TextStyle(fontSize: ScreenAdapter.size(30)),
                   border: InputBorder.none
                 ),
@@ -190,8 +210,16 @@ class _ModifyUserInfoState extends State<ModifyUserInfo> {
                   borderRadius: BorderRadius.circular(28),
                 ),
                 elevation: 0,
-                onPressed: (){
-
+                onPressed: () {
+                  var arguments =  {'uid':uid, 'token':token, 'nickname':_nameText.text};
+                  FormData formData = FormData.fromMap(arguments);
+                  api.postData(context, 'updateNickname', formData:formData).then((val){
+                    var res= json.decode(val.toString());
+                    if(res['data']['code'] == 1){
+                      Navigator.pop(context);
+                    }
+                    Fluttertoast.showToast(msg: res['data']['msg']);
+                  });
                 },
               ),
             )
@@ -206,8 +234,9 @@ class _ModifyUserInfoState extends State<ModifyUserInfo> {
             Container(
               child: TextField(
                 controller: _autographText,
+                style: TextStyle(fontSize: ScreenAdapter.size(30)),
                 decoration: InputDecoration(
-                  hintText: '请输入新的地址',
+                  hintText: '请输入新的签名',
                   hintStyle: TextStyle(fontSize: ScreenAdapter.size(30)),
                   border: InputBorder.none
                 ),
@@ -236,7 +265,15 @@ class _ModifyUserInfoState extends State<ModifyUserInfo> {
                 ),
                 elevation: 0,
                 onPressed: (){
-
+                  var arguments =  {'uid':uid, 'token':token, 'signature':_autographText.text};
+                  FormData formData = FormData.fromMap(arguments);
+                  api.postData(context, 'updateSignature', formData:formData).then((val){
+                    var res= json.decode(val.toString());
+                    if(res['data']['code'] == 1){
+                      Navigator.pop(context);
+                    }
+                    Fluttertoast.showToast(msg: res['data']['msg']);
+                  });
                 },
               ),
             )
@@ -251,6 +288,7 @@ class _ModifyUserInfoState extends State<ModifyUserInfo> {
             Container(
               child: TextField(
                 controller: _addressText,
+                style: TextStyle(fontSize: ScreenAdapter.size(30)),
                 decoration: InputDecoration(
                   hintText: '请输入新的地址',
                   hintStyle: TextStyle(fontSize: ScreenAdapter.size(30)),
@@ -281,7 +319,15 @@ class _ModifyUserInfoState extends State<ModifyUserInfo> {
                 ),
                 elevation: 0,
                 onPressed: (){
-
+                  var arguments =  {'uid':uid, 'token':token, 'city':_addressText.text};
+                  FormData formData = FormData.fromMap(arguments);
+                  api.postData(context, 'updateCity', formData:formData).then((val){
+                    var res= json.decode(val.toString());
+                    if(res['data']['code'] == 1){
+                      Navigator.pop(context);
+                    }
+                    Fluttertoast.showToast(msg: res['data']['msg']);
+                  });
                 },
               ),
             )
@@ -310,6 +356,7 @@ class _ModifyUserInfoState extends State<ModifyUserInfo> {
                     child: Container(
                       child: TextField(
                         controller: _phoneText,
+                        style: TextStyle(fontSize: ScreenAdapter.size(30)),
                         decoration: InputDecoration(
                           hintText: '请输入手机号',
                           hintStyle: TextStyle(fontSize: ScreenAdapter.size(30)),
@@ -341,7 +388,10 @@ class _ModifyUserInfoState extends State<ModifyUserInfo> {
                     onTap: (){
                       if(_verification_available){
                         if(_countdownTime == 60){
-                          print('请求验证码接口');
+                          api.getData(context, 'getBindMobileCode', formData:{'uid':uid, 'token':token, 'mobile':_phoneText.text}).then((val){
+                            var res= json.decode(val.toString());
+                            Fluttertoast.showToast(msg: res['data']['msg']);
+                          });
                         }else{
                           Fluttertoast.showToast(msg: '请稍后获取验证码~');
                           return;
@@ -362,6 +412,7 @@ class _ModifyUserInfoState extends State<ModifyUserInfo> {
             Container(
               child: TextField(
                 controller: _codeText,
+                style: TextStyle(fontSize: ScreenAdapter.size(30)),
                 enabled: _verification_available ? true : false,
                 decoration: InputDecoration(
                   hintText: '请输入验证码',
@@ -393,7 +444,17 @@ class _ModifyUserInfoState extends State<ModifyUserInfo> {
                 ),
                 elevation: 0,
                 onPressed: (){
-
+                  var arguments =  {'uid':uid, 'token':token, 'mobile':_phoneText.text, 'code':_codeText.text};
+                  print(arguments);
+                  FormData formData = FormData.fromMap(arguments);
+                  api.postData(context, 'updateMobile', formData:formData).then((val){
+                    var res= json.decode(val.toString());
+                    if(res['data']['code'] == 1){
+                      
+                      Navigator.pop(context);
+                    }
+                    Fluttertoast.showToast(msg: res['data']['msg']);
+                  });
                 },
               ),
             )
@@ -408,6 +469,7 @@ class _ModifyUserInfoState extends State<ModifyUserInfo> {
             Container(
               child: TextField(
                 controller: _emailText,
+                style: TextStyle(fontSize: ScreenAdapter.size(30)),
                 decoration: InputDecoration(
                   hintText: '请输入新的邮箱地址',
                   hintStyle: TextStyle(fontSize: ScreenAdapter.size(30)),
@@ -438,7 +500,16 @@ class _ModifyUserInfoState extends State<ModifyUserInfo> {
                 ),
                 elevation: 0,
                 onPressed: (){
-
+                  var arguments =  {'uid':uid, 'token':token, 'email':_emailText.text};
+                  FormData formData = FormData.fromMap(arguments);
+                  api.postData(context, 'updateEmail', formData:formData).then((val){
+                    var res= json.decode(val.toString());
+                    print(res);
+                    if(res['data']['code'] == 1){
+                      Fluttertoast.showToast(msg: res['data']['msg']);
+                      Navigator.pop(context);
+                    }
+                  });
                 },
               ),
             )
@@ -471,6 +542,7 @@ class _ModifyUserInfoState extends State<ModifyUserInfo> {
                     child: Container(
                       child: TextField(
                         controller: _phoneText,
+                        style: TextStyle(fontSize: ScreenAdapter.size(30)),
                         decoration: InputDecoration(
                           hintText: '请输入手机号',
                           hintStyle: TextStyle(fontSize: ScreenAdapter.size(30)),
@@ -502,7 +574,13 @@ class _ModifyUserInfoState extends State<ModifyUserInfo> {
                     onTap: (){
                       if(_verification_available){
                         if(_countdownTime == 60){
-                          print('请求验证码接口');
+                          api.getData(context, 'getForgetCode', formData:{ 'mobile':_phoneText.text}).then((val){
+                            var res= json.decode(val.toString());
+                            print(res);
+                            if(res['data']['code'] == 1){
+                              Fluttertoast.showToast(msg: res['data']['msg']);
+                            }
+                          });
                         }else{
                           Fluttertoast.showToast(msg: '请稍后获取验证码~');
                           return;
@@ -523,6 +601,7 @@ class _ModifyUserInfoState extends State<ModifyUserInfo> {
             Container(
               child: TextField(
                 controller: _codeText,
+                style: TextStyle(fontSize: ScreenAdapter.size(30)),
                 enabled: _verification_available ? true : false,
                 decoration: InputDecoration(
                   hintText: '请输入验证码',
@@ -545,6 +624,7 @@ class _ModifyUserInfoState extends State<ModifyUserInfo> {
             Container(
               child: TextField(
                 controller: _passwordText,
+                style: TextStyle(fontSize: ScreenAdapter.size(30)),
                 enabled: _verification_available ? true : false,
                 keyboardType: TextInputType.visiblePassword,
                 obscureText: true,
@@ -569,6 +649,7 @@ class _ModifyUserInfoState extends State<ModifyUserInfo> {
             Container(
               child: TextField(
                 keyboardType: TextInputType.visiblePassword,
+                style: TextStyle(fontSize: ScreenAdapter.size(30)),
                 obscureText: true,
                 decoration: InputDecoration(
                   hintText: '再次请输入新密码',
@@ -614,7 +695,18 @@ class _ModifyUserInfoState extends State<ModifyUserInfo> {
                 ),
                 elevation: 0,
                 onPressed: (){
-                  
+                  var arguments =  {'password':_passwordText.text, 'mobile':_phoneText.text, 'code':_codeText.text};
+                  print(arguments);
+                  FormData formData = FormData.fromMap(arguments);
+                  api.postData(context, 'userForget', formData:formData).then((val){
+                    var res= json.decode(val.toString());
+                    print(res);
+                    if(res['data']['code'] == 1){
+                      
+                      Navigator.pop(context);
+                    }
+                    Fluttertoast.showToast(msg: res['data']['msg']);
+                  });
                 },
               ),
             )

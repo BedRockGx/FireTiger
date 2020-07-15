@@ -1,18 +1,45 @@
+import 'dart:convert';
+
 import 'package:firetiger/PluginWidget/GreyDivider.dart';
 import 'package:firetiger/PluginWidget/HomeVideoList.dart';
 import 'package:firetiger/PluginWidget/ImageRound.dart';
 import 'package:firetiger/PluginWidget/VideoList.dart';
+import 'package:firetiger/http/api.dart';
+import 'package:firetiger/utils/PublicStorage.dart';
 import 'package:firetiger/utils/ScreenAdapter.dart';
 import 'package:flutter/material.dart';
 
 class BriefIntroduction extends StatefulWidget {
+  var data;
+  BriefIntroduction(this.data);
   @override
-  _BriefIntroductionState createState() => _BriefIntroductionState();
+  _BriefIntroductionState createState() => _BriefIntroductionState(this.data);
 }
 
 class _BriefIntroductionState extends State<BriefIntroduction> {
+  var data;
+  _BriefIntroductionState(this.data);
 
   var maxLines = 1;
+  var api = Api();
+  List<Map> videoData = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _getRelatedVideo();
+  }
+
+  _getRelatedVideo() async {
+    var uuid = await PublicStorage.getHistoryList('uuid');
+    print(uuid);
+    api.getData(context, 'getRelatedVideo', formData: {'uid':uuid, 'page':1, 'size':10}).then((val){
+      var res = json.decode(val.toString());
+      setState(() {
+        videoData = (res['data']['info']['list'] as List).cast();
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,8 +52,9 @@ class _BriefIntroductionState extends State<BriefIntroduction> {
         Container(
           padding: EdgeInsets.all(rpx * 30),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Text('足球带我奔跑：一停一拉一传，萨拉赫背身做球的梦幻三连', style: TextStyle(fontSize: 35 * rpx),),
+              Text('${data['title']}', style: TextStyle(fontSize: 35 * rpx),),
               SizedBox(
                 height: 10 * rpx,
               ),
@@ -35,13 +63,13 @@ class _BriefIntroductionState extends State<BriefIntroduction> {
                   children: <Widget>[
                     Icon(IconData(0xe681, fontFamily: 'myIcon'), size: 30 * rpx, color: Color(0xffA4A4A4)),
                     SizedBox(width: 10 * rpx,),
-                    Text('83876', style: TextStyle(fontSize: 20 * rpx, color: Color(0xffA4A4A4)),),
+                    Text('${data['views']}', style: TextStyle(fontSize: 20 * rpx, color: Color(0xffA4A4A4)),),
                     SizedBox(width: 20 * rpx,),
                     Icon(IconData(0xe680, fontFamily: 'myIcon'), size: 30 * rpx, color: Color(0xffA4A4A4)),
                     SizedBox(width: 10 * rpx,),
-                    Text('34', style: TextStyle(fontSize: 20 * rpx, color: Color(0xffA4A4A4)),),
+                    Text('${data['comments']}', style: TextStyle(fontSize: 20 * rpx, color: Color(0xffA4A4A4)),),
                     SizedBox(width: 30 * rpx,),
-                    Text('分类：足球', style: TextStyle(fontSize: 20 * rpx, color: Color(0xffA4A4A4)),)
+                    Text('分类：${data['videoType']}', style: TextStyle(fontSize: 20 * rpx, color: Color(0xffA4A4A4)),)
                   ],
                 ),
               ),
@@ -55,7 +83,7 @@ class _BriefIntroductionState extends State<BriefIntroduction> {
                   children: <Widget>[
                     Expanded(
                       flex: 1,
-                      child: Text('简介：卡拉时间段克拉斯加大了开始的进口蜡打开链接的即可拉伸可怜的健康奥斯卡讲道理哈基督教爱哭的骄傲罕见的喀回家看到黄金卡很骄傲圣诞节开户行阿拉山口的骄傲理解的卡卡老实交代垃圾堆拉时间段拉上来肯德基爱丽丝的加拉开始就打开了大家卢卡斯建档立卡记得', overflow: TextOverflow.ellipsis, maxLines: maxLines, style: TextStyle(fontSize: 20 * rpx),),
+                      child: Text('简介：${data['brief']}', overflow: TextOverflow.ellipsis, maxLines: maxLines, style: TextStyle(fontSize: 20 * rpx),),
                     ),
                     Container(
                       child: InkWell(
@@ -84,16 +112,16 @@ class _BriefIntroductionState extends State<BriefIntroduction> {
           padding: EdgeInsets.all(rpx * 30),
           child: Row(
             children: <Widget>[
-              ImageRoud('https://dss0.bdstatic.com/70cFvHSh_Q1YnxGkpoWK1HF6hhy/it/u=1803056350,344909414&fm=111&gp=0.jpg', 50),
+              ImageRoud('http://live.huohujj.net${data['avatar']}', 50),
               SizedBox(width: 20 * rpx,),
               Expanded(
                 flex: 1,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Text('磐石BedRock', style: TextStyle(fontSize: 30 * rpx, fontWeight: FontWeight.bold),),
+                    Text('${data['user_nicename']}', style: TextStyle(fontSize: 30 * rpx, fontWeight: FontWeight.bold),),
                     SizedBox(height: 5 * rpx,),
-                    Text('二级信息', style: TextStyle(fontSize: 20 * rpx, color:Color(0xffA4A4A4)),),
+                    Text('${data['signature']}', style: TextStyle(fontSize: 20 * rpx, color:Color(0xffA4A4A4)),),
                   ],
                 ),
               ),
@@ -121,11 +149,23 @@ class _BriefIntroductionState extends State<BriefIntroduction> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
+              videoData.length > 0 ? 
               Container(
-                child: Text('相关视频', style: TextStyle(fontSize:30 * rpx),),
-                margin: EdgeInsets.only(bottom:ScreenAdapter.setHeight(20)),
-              ),
-              VideoList(isUnpublished:false, isLiveAnchor:false)
+                child: Column(
+                  children: <Widget>[
+                    Container(
+                      child: Text('相关视频', style: TextStyle(fontSize:30 * rpx),),
+                      margin: EdgeInsets.only(bottom:ScreenAdapter.setHeight(20)),
+                    ),
+                    VideoList(isUnpublished:false, isLiveAnchor:false, videoListData: videoData,)
+                  ],
+                ))
+                :
+                Container(
+                  child: Center(
+                    child: Text('暂无数据'),
+                  ),
+                )
             ],
           ),
         )
